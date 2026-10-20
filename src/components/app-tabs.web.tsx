@@ -7,8 +7,8 @@ import { useTheme } from '@/hooks/use-theme';
 
 const ONGLETS = [
   { name: 'index', href: '/', label: "Aujourd'hui" },
-  { name: 'tournage', href: '/tournage', label: 'Tournage' },
-  { name: 'accroche', href: '/accroche', label: 'Accroche' },
+  { name: 'creer', href: '/creer', label: 'Créer' },
+  { name: 'sortir', href: '/sortir', label: 'Sortir' },
   { name: 'objectif', href: '/objectif', label: 'Objectif' },
 ] as const;
 

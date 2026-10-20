@@ -1,13 +1,48 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 
-import type { AppState } from './types';
+import type { AppState, Contenu, MissionsDuJour, Objectif, Profile, Brief } from './types';
 
-// Tout vit sur le téléphone (pas de compte pour le MVP). Une clé versionnée pour pouvoir migrer plus tard.
-const KEY = 'atelier:v1';
-const HISTORIQUE_MAX = 30;
+// Tout vit sur le téléphone (pas de compte pour le MVP). Une clé par version du format, migration au chargement.
+const KEY = 'atelier:v2';
+const KEY_V1 = 'atelier:v1';
+const CONTENUS_MAX = 200;
 
-const VIDE: AppState = { profile: null, missions: {}, tournages: [], accroches: [], objectif: null };
+const VIDE: AppState = {
+  version: 2,
+  profile: null,
+  reglages: { ia: false, quotaSemaine: 3 },
+  missions: {},
+  contenus: [],
+  sorties: [],
+  objectif: null,
+  position: null,
+};
+
+type V1 = {
+  profile: Profile | null;
+  missions: Record<string, Omit<MissionsDuJour, 'source'> & { demo?: boolean }>;
+  tournages: { id: string; date: string; sujet: string; brief: Brief }[];
+  objectif: Objectif | null;
+};
+
+// v1 (premier MVP) → v2 : les tournages deviennent des contenus au statut « brief », l'historique d'accroches est abandonné.
+function migreV1(v1: V1): AppState {
+  const contenus: Contenu[] = (v1.tournages ?? []).map((t) => ({
+    id: t.id,
+    titre: t.sujet,
+    format: 'reportage',
+    plateforme: v1.profile?.plateformes[0] ?? 'Instagram',
+    statut: 'brief',
+    cree: t.date,
+    brief: t.brief,
+    plansFaits: [],
+  }));
+  const missions = Object.fromEntries(
+    Object.entries(v1.missions ?? {}).map(([d, m]) => [d, { ...m, source: m.demo === false ? 'ia' : 'local' } as MissionsDuJour]),
+  );
+  return { ...VIDE, profile: v1.profile, objectif: v1.objectif, missions, contenus };
+}
 
 type Store = {
   state: AppState;
@@ -24,10 +59,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const loaded = useRef(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(KEY)
-      .then((raw) => {
-        if (raw) setState({ ...VIDE, ...JSON.parse(raw) });
-      })
+    (async () => {
+      const raw = await AsyncStorage.getItem(KEY);
+      if (raw) return setState({ ...VIDE, ...JSON.parse(raw) });
+      const ancien = await AsyncStorage.getItem(KEY_V1);
+      if (ancien) setState(migreV1(JSON.parse(ancien)));
+    })()
       .catch((e) => console.error('lecture du stockage', e))
       .finally(() => {
         loaded.current = true;
@@ -43,14 +80,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const update = (fn: (s: AppState) => AppState) =>
     setState((s) => {
       const next = fn(s);
-      return {
-        ...next,
-        tournages: next.tournages.slice(0, HISTORIQUE_MAX),
-        accroches: next.accroches.slice(0, HISTORIQUE_MAX),
-      };
+      return { ...next, contenus: next.contenus.slice(0, CONTENUS_MAX) };
     });
 
-  const reset = () => setState(VIDE);
+  const reset = () => {
+    AsyncStorage.removeItem(KEY_V1).catch(() => {});
+    setState(VIDE);
+  };
 
   return <Ctx.Provider value={{ state, ready, update, reset }}>{children}</Ctx.Provider>;
 }
@@ -61,9 +97,4 @@ export function useStore() {
   return s;
 }
 
-export const today = () => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-};
-
-export const newId = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+export { ajouteJours, dateCourte, debutSemaine, ecartJours, jourIso, newId, today } from './dates';

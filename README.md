@@ -1,17 +1,22 @@
 # Atelier — MVP iOS
 
-App iOS pour créateurs de contenu, tirée de l'Atelier d'Erwin (`../code-erwin`), rendue générique : chaque créateur décrit son profil à l'onboarding et toute l'IA s'adapte à lui.
+App iOS pour créateurs de contenu, tirée de l'Atelier d'Erwin (`../code-erwin`), rendue générique : chaque créateur décrit son profil à l'onboarding.
+Positionnement : « le coach qui te fait sortir créer, et te dit la vérité après ». Design inspiré de Flighty (sombre, gros chiffres, couleurs réservées aux statuts).
 
 ## Ce que fait le MVP
 
-| Onglet | Rôle | Origine dans l'Atelier |
-|---|---|---|
-| Aujourd'hui | 2-3 missions stories du jour à cocher (sticker, texte à l'écran, « pourquoi »), avec suites logiques sur 3 jours | `stories.py`, `BRIEF_STORIES.md` |
-| Tournage | Brief avant de filmer : 3 accroches, plans à ramener, phrases, à éviter | `tournage.py`, `BRIEF_TOURNAGE.md` |
-| Accroche | Note /10 de la 1re image + 1re phrase, défaut principal, 3 réécritures (vision Claude) | `accroches.py`, `BRIEF_ACCROCHES.md` |
-| Objectif | Fil rouge abonnés : rythme nécessaire vs rythme réel (calcul local, sans IA) | `1_accueil` (Fil rouge) |
+Tout marche **sans IA** (règles et modèles en local, dans `src/lib/`). L'assistant IA est une option des réglages, désactivée par défaut.
 
-Données : sur le téléphone (AsyncStorage), sans compte. IA : fonction serveur `supabase/functions/atelier`, la clé Claude ne quitte jamais le serveur.
+| Onglet | Rôle | Moteur local | Origine dans l'Atelier |
+|---|---|---|---|
+| Aujourd'hui | Anneaux de la semaine, prochaine belle lumière, verdicts à rendre, stories du jour, prochain départ | `missions.ts` | `1_accueil`, `stories.py`, `BRIEF_STORIES.md` |
+| Créer | Une carte d'embarquement par contenu : Idée → Brief → Tournage → Publié → Verdict | `brief.ts`, `verdict.ts` | `tournage.py`, `accroches.py`, `conseils.py` |
+| Sortir | Golden hour et heure bleue près de soi, sorties planifiées, idées de sortie | `soleil.ts` | `agenda.py` (onglet Sortir) |
+| Objectif | Abonnés : rythme nécessaire vs réel ; quota de publications par semaine | `objectif.ts` | `1_accueil` (Fil rouge) |
+
+- **Verdict à 48 h** : vues comparées à la médiane du créateur sur la même plateforme, puis le défaut principal (zap, réactions, partages, conversion) et 3 actions.
+- **Stories** : un seul sondage par jour, au réveil ; son résultat le lendemain ; défi le lundi ; boîte à questions en dernier.
+- **Données** : sur le téléphone (AsyncStorage, clé `atelier:v2`, migration automatique depuis `v1`), sans compte. La position ne sert qu'au calcul de la lumière.
 
 ## Lancer en local
 

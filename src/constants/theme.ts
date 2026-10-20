@@ -1,5 +1,6 @@
 /**
- * Atelier — carnet de créateur : papier chaud, encre, un seul accent vermillon.
+ * Atelier — inspiré de Flighty : fond sombre profond, très gros chiffres arrondis, couleurs réservées aux statuts.
+ * Vert / ambre / rouge ne servent qu'à dire un état (jamais de décoration). L'accent sert aux actions.
  * Couleurs, espacements et rayons viennent d'ici, jamais de valeur en dur dans les écrans.
  */
 
@@ -7,32 +8,27 @@ import '@/global.css';
 
 import { Platform } from 'react-native';
 
-export const Colors = {
-  light: {
-    text: '#161412',
-    background: '#F4F1EA',
-    backgroundElement: '#FFFFFF',
-    backgroundSelected: '#E9E4D8',
-    textSecondary: '#6B655C',
-    border: '#DDD6C8',
-    accent: '#E0462B',
-    accentText: '#FFFFFF',
-    success: '#2F7D4F',
-  },
-  dark: {
-    text: '#F4F1EA',
-    background: '#121110',
-    backgroundElement: '#1C1A18',
-    backgroundSelected: '#2A2724',
-    textSecondary: '#A39C90',
-    border: '#2F2B27',
-    accent: '#F05A3E',
-    accentText: '#FFFFFF',
-    success: '#5DBB83',
-  },
+const palette = {
+  text: '#F2F4F7',
+  background: '#07090C',
+  backgroundElement: '#12161C',
+  backgroundSelected: '#1C222B',
+  textSecondary: '#8B95A3',
+  textTertiary: '#5A6370',
+  border: '#232A34',
+  accent: '#5B8CFF',
+  accentText: '#FFFFFF',
+  success: '#34D399',
+  warning: '#FBBF24',
+  danger: '#F87171',
+  golden: '#F59E0B',
+  blue: '#6366F1',
 } as const;
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+// L'app est sombre dans les deux modes : c'est son identité (comme Flighty).
+export const Colors = { light: palette, dark: palette } as const;
+
+export type ThemeColor = keyof typeof palette;
 
 export const Fonts = Platform.select({
   ios: {
@@ -68,7 +64,7 @@ export const Spacing = {
 export const Radius = {
   small: 10,
   medium: 16,
-  large: 24,
+  large: 22,
   pill: 999,
 } as const;
 

@@ -1,14 +1,16 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Platform, StyleSheet, View } from 'react-native';
+import { Alert, Platform, StyleSheet, Switch, View } from 'react-native';
 
 import { Button, Card, Chip, Field, Screen, Txt } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { OBJECTIFS, PLATEFORMES } from '@/lib/options';
 import { useStore } from '@/lib/store';
 import type { Profile } from '@/lib/types';
 
 export default function Reglages() {
+  const theme = useTheme();
   const { state, update, reset } = useStore();
   const [p, setP] = useState<Profile>(state.profile!);
   const set = (patch: Partial<Profile>) => setP((x) => ({ ...x, ...patch }));
@@ -21,7 +23,7 @@ export default function Reglages() {
   const effacer = () => {
     const go = () => reset();
     if (Platform.OS === 'web') return go();
-    Alert.alert('Tout effacer ?', 'Ton profil, tes missions, tes tournages et ton objectif seront supprimés de ce téléphone.', [
+    Alert.alert('Tout effacer ?', 'Ton profil, tes stories, tes contenus, tes sorties et ton objectif seront supprimés de ce téléphone.', [
       { text: 'Annuler', style: 'cancel' },
       { text: 'Effacer', style: 'destructive', onPress: go },
     ]);
@@ -31,7 +33,7 @@ export default function Reglages() {
     <Screen title="Ton profil" kicker="Réglages">
       <Card>
         <Field label="Prénom" value={p.prenom} onChangeText={(prenom) => set({ prenom })} />
-        <Txt variant="overline">Plateformes</Txt>
+        <Txt variant="label">Plateformes</Txt>
         <View style={styles.wrap}>
           {PLATEFORMES.map((x) => (
             <Chip
@@ -44,7 +46,7 @@ export default function Reglages() {
         </View>
         <Field label="Niche" value={p.niche} onChangeText={(niche) => set({ niche })} multiline />
         <Field label="Audience" value={p.audience} onChangeText={(audience) => set({ audience })} />
-        <Txt variant="overline">Objectif</Txt>
+        <Txt variant="label">Objectif</Txt>
         <View style={styles.wrap}>
           {OBJECTIFS.map((x) => (
             <Chip key={x} label={x} selected={p.objectif === x} onPress={() => set({ objectif: x })} />
@@ -57,11 +59,26 @@ export default function Reglages() {
       </Card>
 
       <Card>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.three }}>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Txt variant="heading">Assistant IA</Txt>
+            <Txt variant="small" color="textSecondary">Option. Les stories et les briefs sont alors rédigés par Claude à partir de ton profil. Sans elle, l&apos;Atelier marche avec ses propres règles.</Txt>
+          </View>
+          <Switch
+            accessibilityLabel="Assistant IA"
+            value={state.reglages.ia}
+            onValueChange={(ia) => update((s) => ({ ...s, reglages: { ...s.reglages, ia } }))}
+            trackColor={{ true: theme.accent, false: theme.backgroundSelected }}
+          />
+        </View>
+      </Card>
+
+      <Card>
         <Txt variant="heading">Tes données</Txt>
         <Txt variant="small" color="textSecondary">
-          Tout reste sur ce téléphone. Seul le texte de ta demande (et l&apos;image d&apos;accroche si tu en ajoutes une) part vers l&apos;IA, le temps de la réponse.
+          Tout reste sur ce téléphone. Si l&apos;assistant IA est activé, seul le texte de ta demande part vers l&apos;IA, le temps de la réponse.
         </Txt>
-        <Button kind="secondary" label="Tout effacer" onPress={effacer} />
+        <Button kind="danger" label="Tout effacer" onPress={effacer} />
       </Card>
     </Screen>
   );

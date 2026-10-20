@@ -19,6 +19,7 @@
   ],
   "exclude": [
     "supabase",
+    "server",
     "node_modules"
   ]
 }

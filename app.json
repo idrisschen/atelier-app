@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "atelier",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "dark",
     "ios": {
       "icon": "./assets/expo.icon",
       "bundleIdentifier": "com.maninstudio.atelier",
@@ -34,20 +34,15 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F4F1EA",
+          "backgroundColor": "#07090C",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76,
-          "dark": {
-            "backgroundColor": "#121110"
-          }
+          "imageWidth": 76
         }
       ],
       [
-        "expo-image-picker",
+        "expo-location",
         {
-          "photosPermission": "L'Atelier lit la première image de ta vidéo pour noter ton accroche.",
-          "cameraPermission": false,
-          "microphonePermission": false
+          "locationWhenInUsePermission": "L'Atelier utilise ta position pour calculer la golden hour près de toi. Elle ne quitte pas ton téléphone."
         }
       ]
     ],

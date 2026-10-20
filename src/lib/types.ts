@@ -8,9 +8,17 @@ export type Profile = {
   regles: string;
 };
 
+export type Reglages = {
+  ia: boolean; // assistant IA (option, désactivé par défaut : tout marche sans)
+  quotaSemaine: number; // publications visées par semaine
+};
+
+// ---------- missions stories ----------
+
 export type StickerType = 'sondage' | 'curseur' | 'quiz' | 'questions' | 'lien' | 'ajoute_le_tien' | 'aucun';
 
 export type Mission = {
+  format?: string; // identifiant du format local (pour les suites et la rotation)
   titre: string;
   moment: string;
   quoi: string;
@@ -24,8 +32,15 @@ export type MissionsDuJour = {
   conseil: string;
   faites: number[];
   journee: string;
-  demo: boolean;
+  source: 'local' | 'ia';
+  demo?: boolean;
 };
+
+// ---------- contenus : la carte d'embarquement ----------
+
+export type Statut = 'idee' | 'brief' | 'tournage' | 'publie' | 'verdict';
+
+export type FormatContenu = 'reportage' | 'vlog' | 'tuto' | 'coulisses' | 'portrait';
 
 export type Brief = {
   objectif: string;
@@ -35,19 +50,53 @@ export type Brief = {
   a_eviter: string[];
 };
 
-export type AnalyseAccroche = {
-  note: number;
-  verdict: string;
-  defaut_principal: string;
-  image: string;
-  phrase: string;
-  texte_ecran: string;
-  reecritures: { phrase: string; image: string }[];
+export type Stats = {
+  vues: number;
+  likes: number;
+  commentaires: number;
+  partages: number;
+  enregistrements: number;
+  abonnes: number;
+  zap?: number; // % qui zappent dans les 3 premières secondes, si la plateforme le donne
 };
 
-export type Tournage = { id: string; date: string; sujet: string; brief: Brief; demo: boolean };
+export type Verdict = {
+  niveau: 'haut' | 'moyen' | 'bas' | 'repere';
+  ratio: number | null; // vues / médiane des contenus précédents
+  titre: string;
+  defaut: string;
+  actions: string[];
+};
 
-export type Accroche = { id: string; date: string; phrase: string; imageUri?: string; analyse: AnalyseAccroche; demo: boolean };
+export type Contenu = {
+  id: string;
+  titre: string;
+  format: FormatContenu;
+  plateforme: string;
+  statut: Statut;
+  cree: string; // AAAA-MM-JJ
+  tournage?: string; // date prévue
+  brief?: Brief;
+  plansFaits: number[];
+  publie?: string; // date de publication
+  stats?: Stats;
+  verdict?: Verdict;
+};
+
+// ---------- sorties ----------
+
+export type Sortie = {
+  id: string;
+  lieu: string;
+  quand: string; // AAAA-MM-JJTHH:mm (heure locale)
+  note: string;
+  contenuId?: string;
+  faite: boolean;
+};
+
+export type Position = { lat: number; lon: number; ville?: string };
+
+// ---------- objectif ----------
 
 export type Objectif = {
   plateforme: string;
@@ -57,9 +106,12 @@ export type Objectif = {
 };
 
 export type AppState = {
+  version: 2;
   profile: Profile | null;
+  reglages: Reglages;
   missions: Record<string, MissionsDuJour>;
-  tournages: Tournage[];
-  accroches: Accroche[];
+  contenus: Contenu[];
+  sorties: Sortie[];
   objectif: Objectif | null;
+  position: Position | null;
 };

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button, Chip, Field, Txt } from '@/components/ui';
+import { Button, Chip, Field, Groupe, Txt } from '@/components/ui';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { PLATEFORMES, OBJECTIFS } from '@/lib/options';
@@ -16,6 +16,7 @@ export default function Bienvenue() {
   const insets = useSafeAreaInsets();
   const { update } = useStore();
   const [etape, setEtape] = useState(0);
+  const [quota, setQuota] = useState(3);
   const [p, setP] = useState<Profile>({ prenom: '', plateformes: [], niche: '', audience: '', objectif: '', ton: '', regles: '' });
   const set = (patch: Partial<Profile>) => setP((x) => ({ ...x, ...patch }));
 
@@ -28,7 +29,7 @@ export default function Bienvenue() {
 
   const suivant = () => {
     if (etape < ETAPES - 1) return setEtape(etape + 1);
-    update((s) => ({ ...s, profile: { ...p, prenom: p.prenom.trim(), niche: p.niche.trim() } }));
+    update((s) => ({ ...s, profile: { ...p, prenom: p.prenom.trim(), niche: p.niche.trim() }, reglages: { ...s.reglages, quotaSemaine: quota } }));
   };
 
   return (
@@ -45,12 +46,13 @@ export default function Bienvenue() {
 
           {etape === 0 && (
             <View style={{ gap: Spacing.four, flex: 1, justifyContent: 'center' }}>
-              <Txt variant="overline" color="accent">Atelier</Txt>
-              <Txt style={styles.hero}>Poste mieux.{'\n'}Pas plus.</Txt>
+              <Txt variant="label" color="accent">Atelier</Txt>
+              <Txt style={styles.hero}>Sors créer.{'\n'}On te dit la vérité après.</Txt>
               <View style={{ gap: Spacing.three }}>
-                <Point n="1" titre="Tes missions du jour" texte="2 ou 3 stories qui font réagir, faisables en 30 secondes." />
-                <Point n="2" titre="Ton tournage préparé" texte="Accroches, plans à ramener, phrases à dire avant de partir filmer." />
-                <Point n="3" titre="Ton accroche notée" texte="Tu sais si les gens vont zapper avant de poster." />
+                <Point n="1" titre="Un cap et un rythme" texte="Un objectif clair et ton quota de publications de la semaine." />
+                <Point n="2" titre="Ta mission du jour" texte="2 ou 3 stories qui font réagir, faisables en 30 secondes." />
+                <Point n="3" titre="Sortir et tourner" texte="La belle lumière près de toi, et un brief prêt avant de filmer." />
+                <Point n="4" titre="Le verdict, franc" texte="À 48 h, chaque contenu comparé à ta médiane, défaut principal d’abord." />
               </View>
             </View>
           )}
@@ -60,7 +62,7 @@ export default function Bienvenue() {
               <Txt variant="title">On commence par toi.</Txt>
               <Field label="Ton prénom" value={p.prenom} onChangeText={(prenom) => set({ prenom })} placeholder="Sam" autoFocus autoComplete="given-name" textContentType="givenName" returnKeyType="next" />
               <View style={{ gap: Spacing.two }}>
-                <Txt variant="overline">Où tu postes</Txt>
+                <Txt variant="label">Où tu postes</Txt>
                 <View style={styles.wrap}>
                   {PLATEFORMES.map((x) => (
                     <Chip
@@ -83,7 +85,7 @@ export default function Bienvenue() {
                 value={p.niche}
                 onChangeText={(niche) => set({ niche })}
                 placeholder="Photo de rue en noir et blanc à Paris"
-                hint="Une phrase précise vaut mieux qu'un mot : l'IA s'en sert pour tout."
+                hint="Une phrase précise vaut mieux qu'un mot : l'Atelier s'en sert partout."
                 multiline
               />
               <Field label="Qui te regarde (facultatif)" value={p.audience} onChangeText={(audience) => set({ audience })} placeholder="18-30 ans, passionnés de photo argentique" />
@@ -98,13 +100,18 @@ export default function Bienvenue() {
                   <Chip key={x} label={x} selected={p.objectif === x} onPress={() => set({ objectif: x })} />
                 ))}
               </View>
+              <Groupe titre="Publications par semaine">
+                {[1, 2, 3, 4, 5, 7].map((n) => (
+                  <Chip key={n} label={String(n)} selected={quota === n} onPress={() => setQuota(n)} />
+                ))}
+              </Groupe>
               <Field label="Ta façon de parler (facultatif)" value={p.ton} onChangeText={(ton) => set({ ton })} placeholder="Calme, respectueux, un peu d'humour sec" />
               <Field
                 label="Ce que tu refuses (facultatif)"
                 value={p.regles}
                 onChangeText={(regles) => set({ regles })}
                 placeholder="Pas de sujets clivants, jamais de plan en voiture"
-                hint="Tes règles permanentes : l'IA ne les enfreindra jamais."
+                hint="Tes règles permanentes : elles s'ajoutent à chaque brief."
                 multiline
               />
             </View>
@@ -125,7 +132,7 @@ function Point({ n, titre, texte }: { n: string; titre: string; texte: string })
   const theme = useTheme();
   return (
     <View style={{ flexDirection: 'row', gap: Spacing.three, alignItems: 'flex-start' }}>
-      <View style={[styles.num, { borderColor: theme.text }]}>
+      <View style={[styles.num, { borderColor: theme.accent }]}>
         <Txt variant="small" style={{ fontWeight: '800' }}>{n}</Txt>
       </View>
       <View style={{ flex: 1, gap: 2 }}>
@@ -139,7 +146,7 @@ function Point({ n, titre, texte }: { n: string; titre: string; texte: string })
 const styles = StyleSheet.create({
   progress: { flexDirection: 'row', gap: Spacing.one },
   dot: { flex: 1, height: 3, borderRadius: Radius.pill },
-  hero: { fontSize: 52, lineHeight: 52, fontWeight: '900', letterSpacing: -2 },
+  hero: { fontSize: 44, lineHeight: 46, fontWeight: '800', letterSpacing: -1.6 },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
   num: { width: 30, height: 30, borderRadius: 15, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
 });
