@@ -1,6 +1,6 @@
 # Atelier — MVP iOS
 
-App iOS pour créateurs de contenu, tirée de l'Atelier (`../ATELIER_CODE`), rendue générique : chaque créateur décrit son profil à l'onboarding et toute l'IA s'adapte à lui.
+App iOS pour créateurs de contenu, tirée de l'Atelier d'Erwin (`../code-erwin`), rendue générique : chaque créateur décrit son profil à l'onboarding et toute l'IA s'adapte à lui.
 
 ## Ce que fait le MVP
 
