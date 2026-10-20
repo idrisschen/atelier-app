@@ -1,56 +1,40 @@
-# Welcome to your Expo app 👋
+# Atelier — MVP iOS
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+App iOS pour créateurs de contenu, tirée de l'Atelier (`../ATELIER_CODE`), rendue générique : chaque créateur décrit son profil à l'onboarding et toute l'IA s'adapte à lui.
 
-## Get started
+## Ce que fait le MVP
 
-1. Install dependencies
+| Onglet | Rôle | Origine dans l'Atelier |
+|---|---|---|
+| Aujourd'hui | 2-3 missions stories du jour à cocher (sticker, texte à l'écran, « pourquoi »), avec suites logiques sur 3 jours | `stories.py`, `BRIEF_STORIES.md` |
+| Tournage | Brief avant de filmer : 3 accroches, plans à ramener, phrases, à éviter | `tournage.py`, `BRIEF_TOURNAGE.md` |
+| Accroche | Note /10 de la 1re image + 1re phrase, défaut principal, 3 réécritures (vision Claude) | `accroches.py`, `BRIEF_ACCROCHES.md` |
+| Objectif | Fil rouge abonnés : rythme nécessaire vs rythme réel (calcul local, sans IA) | `1_accueil` (Fil rouge) |
 
-   ```bash
-   npm install
-   ```
+Données : sur le téléphone (AsyncStorage), sans compte. IA : fonction serveur `supabase/functions/atelier`, la clé Claude ne quitte jamais le serveur.
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Lancer en local
 
 ```bash
-npm run reset-project
+# 1. Passerelle IA (sans ANTHROPIC_API_KEY → réponses de démo)
+cd supabase/functions/atelier
+ANTHROPIC_API_KEY=sk-ant-… deno run --allow-net --allow-env index.ts   # écoute sur :8000
+
+# 2. App (Node 22)
+npx expo start          # i = simulateur (Xcode requis), w = navigateur, QR = Expo Go sur iPhone
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+Sur un iPhone physique : `EXPO_PUBLIC_AI_URL=http://<IP-du-Mac>:8000 npx expo start`.
 
-### Other setup steps
+## Mise en ligne
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+1. Fonction : `supabase functions deploy atelier` puis `supabase secrets set ANTHROPIC_API_KEY=…`.
+   Dans `.env` de l'app : `EXPO_PUBLIC_AI_URL=https://<projet>.supabase.co/functions/v1/atelier` et `EXPO_PUBLIC_SUPABASE_ANON_KEY=…`.
+2. Build iOS sans Xcode local : `npx eas-cli@latest build -p ios`, puis `npx eas-cli@latest submit -p ios` (compte Apple Developer requis).
 
-## Learn more
+## Avant l'App Store (non fait dans le MVP)
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- **Quota par utilisateur** sur la fonction IA : aujourd'hui, n'importe qui avec l'URL et la clé anon peut consommer la clé Claude. Prévoir Supabase Auth anonyme + compteur quotidien.
+- Politique de confidentialité (texte et image envoyés à Anthropic), fiche App Store, icône et splash définitifs.
+- Abonnement (RevenueCat / StoreKit) si l'app devient payante.
+- Modèle : `claude-opus-5-5` par défaut, modifiable via `ATELIER_MODEL` côté serveur selon le coût mesuré.

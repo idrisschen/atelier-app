@@ -1,18 +1,44 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+import { useEffect } from 'react';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { Colors } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { StoreProvider, useStore } from '@/lib/store';
 
 SplashScreen.preventAutoHideAsync();
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+function Routes() {
+  const { state, ready } = useStore();
+  const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
+  const base = scheme === 'dark' ? DarkTheme : DefaultTheme;
+  const c = Colors[scheme];
+
+  useEffect(() => {
+    if (ready) SplashScreen.hideAsync();
+  }, [ready]);
+
+  if (!ready) return null;
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
+    <ThemeProvider value={{ ...base, colors: { ...base.colors, background: c.background, card: c.background, text: c.text, primary: c.accent, border: c.border } }}>
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: c.background } }}>
+        <Stack.Protected guard={!!state.profile}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="reglages" options={{ presentation: 'modal' }} />
+        </Stack.Protected>
+        <Stack.Protected guard={!state.profile}>
+          <Stack.Screen name="bienvenue" />
+        </Stack.Protected>
+      </Stack>
     </ThemeProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <StoreProvider>
+      <Routes />
+    </StoreProvider>
   );
 }

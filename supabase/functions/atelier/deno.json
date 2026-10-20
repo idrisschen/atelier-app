@@ -1,0 +1,4 @@
+{
+  "nodeModulesDir": "none",
+  "imports": { "@anthropic-ai/sdk": "npm:@anthropic-ai/sdk@^0.137.0" }
+}
