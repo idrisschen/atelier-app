@@ -5,7 +5,8 @@ import { useState } from 'react';
 import { Button, Chip, ErrorNote, Field, Groupe, Screen } from '@/components/ui';
 import { askAtelier } from '@/lib/ai';
 import { briefLocal, FORMATS } from '@/lib/brief';
-import { ajouteJours, newId, today, useStore } from '@/lib/store';
+import { ajouteJours, newId, today } from '@/lib/dates';
+import { useStore } from '@/lib/store';
 import type { Brief, Contenu, FormatContenu } from '@/lib/types';
 
 const QUAND = [
@@ -59,26 +60,25 @@ export default function Nouveau() {
   };
 
   return (
-    <Screen title="Nouvelle idée" kicker="Créer">
-      <Field label="Le sujet" value={titre} onChangeText={setTitre} placeholder="Le marché forain du dimanche" autoFocus multiline />
-      <Groupe titre="Format">
+    <Screen back title="Nouvelle idée">
+      <Field label="Le sujet" icon="idee" value={titre} onChangeText={setTitre} placeholder="Le marché forain du dimanche" autoFocus multiline />
+      <Groupe titre="Format" icon="tournage">
         {(Object.keys(FORMATS) as FormatContenu[]).map((f) => (
           <Chip key={f} label={FORMATS[f].label} selected={format === f} onPress={() => setFormat(f)} />
         ))}
       </Groupe>
-      <Groupe titre="Plateforme">
+      <Groupe titre="Plateforme" icon="publie">
         {plateformes.map((p) => (
           <Chip key={p} label={p} selected={plateforme === p} onPress={() => setPlateforme(p)} />
         ))}
       </Groupe>
-      <Groupe titre="Tournage">
+      <Groupe titre="Tournage" icon="date">
         {QUAND.map((q) => (
           <Chip key={q.label} label={q.label} selected={quand === q.jours} onPress={() => setQuand(q.jours)} />
         ))}
       </Groupe>
-      <Button label="Préparer le brief" onPress={() => creer(true)} loading={loading} disabled={titre.trim().length < 3} />
-      <Button kind="secondary" label="Garder en idée" onPress={() => creer(false)} disabled={titre.trim().length < 3 || loading} />
-      <Button kind="ghost" label="Annuler" onPress={() => router.back()} />
+      <Button icon={state.reglages.ia ? 'ia' : 'brief'} label="Préparer le brief" onPress={() => creer(true)} loading={loading} disabled={titre.trim().length < 3} />
+      <Button kind="secondary" icon="idee" label="Garder en idée" onPress={() => creer(false)} disabled={titre.trim().length < 3 || loading} />
       <ErrorNote message={error} />
     </Screen>
   );

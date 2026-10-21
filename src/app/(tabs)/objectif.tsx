@@ -3,11 +3,13 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Barre } from '@/components/barre';
+import { Icon } from '@/components/icon';
 import { Button, Card, Chip, ErrorNote, Field, Groupe, Num, Screen, Section, Txt } from '@/components/ui';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { avancement, nombre } from '@/lib/objectif';
-import { debutSemaine, jourIso, today, useStore } from '@/lib/store';
+import { debutSemaine, jourIso, today } from '@/lib/dates';
+import { useStore } from '@/lib/store';
 
 const DUREES = [
   { label: '1 mois', mois: 1 },
@@ -25,7 +27,7 @@ export default function ObjectifScreen() {
   const { state } = useStore();
   const [edition, setEdition] = useState(false);
   return (
-    <Screen title="Objectif" kicker="Ton cap">
+    <Screen title="Objectif">
       {!state.objectif || edition ? <Formulaire onDone={() => setEdition(false)} /> : <Suivi onChanger={() => setEdition(true)} />}
       <Rythme />
     </Screen>
@@ -38,14 +40,14 @@ function Rythme() {
   const publies = state.contenus.filter((c) => c.publie && c.publie >= lundi).length;
   const quota = state.reglages.quotaSemaine;
   return (
-    <Section titre="Rythme de publication">
+    <Section titre="Publications de la semaine" icon="publie">
       <Card>
         <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: Spacing.two }}>
           <Num size={40} color={publies >= quota ? 'success' : 'text'}>{publies}</Num>
-          <Txt color="textSecondary">sur {quota} cette semaine</Txt>
+          <Num size={22} color="textSecondary">/ {quota}</Num>
         </View>
         <Barre pct={publies / quota} couleur={publies >= quota ? 'success' : 'accent'} />
-        <Groupe titre="Publications visées par semaine">
+        <Groupe titre="Visées par semaine" icon="rythme">
           {[1, 2, 3, 4, 5, 7].map((n) => (
             <Chip key={n} label={String(n)} selected={quota === n} onPress={() => update((s) => ({ ...s, reglages: { ...s.reglages, quotaSemaine: n } }))} />
           ))}
@@ -77,20 +79,23 @@ function Formulaire({ onDone }: { onDone: () => void }) {
 
   return (
     <Card>
-      <Txt variant="heading">Un seul chiffre à faire monter.</Txt>
-      <Groupe titre="Plateforme">
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two }}>
+        <Icon name="cible" size="lg" color="golden" />
+        <Txt variant="heading">Un seul chiffre à faire monter.</Txt>
+      </View>
+      <Groupe titre="Plateforme" icon="abonnes">
         {plateformes.map((p) => (
           <Chip key={p} label={p} selected={plateforme === p} onPress={() => setPlateforme(p)} />
         ))}
       </Groupe>
-      <Field label="Abonnés aujourd'hui" value={actuel} onChangeText={setActuel} keyboardType="number-pad" placeholder="1 240" />
-      <Field label="Objectif" value={cible} onChangeText={setCible} keyboardType="number-pad" placeholder="5 000" />
-      <Groupe titre="En combien de temps">
+      <Field label="Abonnés aujourd'hui" icon="abonnes" value={actuel} onChangeText={setActuel} keyboardType="number-pad" placeholder="1 240" />
+      <Field label="Objectif" icon="objectif" value={cible} onChangeText={setCible} keyboardType="number-pad" placeholder="5 000" />
+      <Groupe titre="En combien de temps" icon="date">
         {DUREES.map((d) => (
           <Chip key={d.mois} label={d.label} selected={mois === d.mois} onPress={() => setMois(d.mois)} />
         ))}
       </Groupe>
-      <Button label="Fixer mon objectif" onPress={valider} disabled={!actuel || !cible || !plateforme} />
+      <Button icon="objectif" label="Fixer mon objectif" onPress={valider} disabled={!actuel || !cible || !plateforme} />
       {state.objectif ? <Button kind="ghost" label="Annuler" onPress={onDone} /> : null}
       <ErrorNote message={error} />
     </Card>
@@ -125,7 +130,10 @@ function Suivi({ onChanger }: { onChanger: () => void }) {
   return (
     <>
       <Card>
-        <Txt variant="label">{o.plateforme} · abonnés</Txt>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two }}>
+          <Icon name="abonnes" size="sm" color="textSecondary" />
+          <Txt variant="label">{o.plateforme}</Txt>
+        </View>
         <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: Spacing.two, flexWrap: 'wrap' }}>
           <Num size={56}>{nombre(a.actuel)}</Num>
           <Num size={22} color="textSecondary">/ {nombre(o.cible)}</Num>
@@ -138,43 +146,47 @@ function Suivi({ onChanger }: { onChanger: () => void }) {
 
       {!a.atteint ? (
         <View style={styles.duo}>
-          <Card style={{ flex: 1 }}>
-            <Txt variant="label">Il te faut</Txt>
+          <View style={{ flex: 1 }}>
+            <Card>
+            <Icon name="cible" size="md" color="textSecondary" />
             <Num size={30}>+{nombre(a.parSemaine)}</Num>
-            <Txt variant="small" color="textSecondary">par semaine</Txt>
+            <Txt variant="small" color="textSecondary">nécessaires / semaine</Txt>
           </Card>
-          <Card style={{ flex: 1 }}>
-            <Txt variant="label">Ton rythme</Txt>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Card>
+            <Icon name="rythme" size="md" color="textSecondary" />
             <Num size={30} color={a.rythme === null ? 'textSecondary' : enAvance ? 'success' : 'danger'}>
               {a.rythme === null ? '—' : `${a.rythme >= 0 ? '+' : ''}${nombre(a.rythme)}`}
             </Num>
-            <Txt variant="small" color="textSecondary">{a.rythme === null ? 'après 7 jours de relevés' : enAvance ? 'en avance' : 'en retard'}</Txt>
+            <Txt variant="small" color="textSecondary">{a.rythme === null ? 'après 7 jours de relevés' : enAvance ? 'ton rythme · en avance' : 'ton rythme · en retard'}</Txt>
           </Card>
+          </View>
         </View>
       ) : null}
 
       <Card>
-        <Field label="Abonnés aujourd'hui" value={valeur} onChangeText={setValeur} keyboardType="number-pad" placeholder={String(a.actuel)} returnKeyType="done" onSubmitEditing={noter} />
-        <Button label="Noter" kind="secondary" onPress={noter} disabled={!valeur} />
+        <Field label="Abonnés aujourd'hui" icon="abonnes" value={valeur} onChangeText={setValeur} keyboardType="number-pad" placeholder={String(a.actuel)} returnKeyType="done" onSubmitEditing={noter} />
+        <Button icon="ok" label="Noter" kind="secondary" onPress={noter} disabled={!valeur} />
         <ErrorNote message={error} />
         {derniers.length > 1 ? (
           <View style={styles.chart} accessibilityLabel={`Évolution sur ${derniers.length} relevés`}>
             {derniers.map((r) => (
               <View
                 key={r.date}
-                style={{ flex: 1, borderRadius: Radius.small / 2, backgroundColor: r.date === today() ? theme.golden : theme.backgroundSelected, height: `${15 + (85 * (r.valeur - min)) / Math.max(1, max - min)}%` }}
+                style={{ flex: 1, maxWidth: 18, borderRadius: Radius.small / 2, backgroundColor: r.date === today() ? theme.golden : theme.backgroundSelected, height: `${15 + (85 * (r.valeur - min)) / Math.max(1, max - min)}%` }}
               />
             ))}
           </View>
         ) : null}
       </Card>
 
-      <Button kind="ghost" label="Changer d'objectif" onPress={onChanger} />
+      <Button kind="ghost" icon="editer" label="Changer d'objectif" onPress={onChanger} />
     </>
   );
 }
 
 const styles = StyleSheet.create({
   duo: { flexDirection: 'row', gap: Spacing.three },
-  chart: { flexDirection: 'row', alignItems: 'flex-end', gap: 4, height: 72, marginTop: Spacing.two },
+  chart: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'flex-end', gap: 6, height: 72, marginTop: Spacing.two },
 });

@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Ambient } from '@/components/ambient';
+import { Glass } from '@/components/glass';
+import { Icon, type NomIcone } from '@/components/icon';
 import { Button, Chip, Field, Groupe, Txt } from '@/components/ui';
 import { MaxContentWidth, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -34,6 +37,7 @@ export default function Bienvenue() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: theme.background }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <Ambient />
       <ScrollView
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ flexGrow: 1, paddingTop: insets.top + Spacing.four, paddingBottom: insets.bottom + Spacing.three, paddingHorizontal: Spacing.three, alignItems: 'center' }}>
@@ -49,10 +53,10 @@ export default function Bienvenue() {
               <Txt variant="label" color="accent">Atelier</Txt>
               <Txt style={styles.hero}>Sors créer.{'\n'}On te dit la vérité après.</Txt>
               <View style={{ gap: Spacing.three }}>
-                <Point n="1" titre="Un cap et un rythme" texte="Un objectif clair et ton quota de publications de la semaine." />
-                <Point n="2" titre="Ta mission du jour" texte="2 ou 3 stories qui font réagir, faisables en 30 secondes." />
-                <Point n="3" titre="Sortir et tourner" texte="La belle lumière près de toi, et un brief prêt avant de filmer." />
-                <Point n="4" titre="Le verdict, franc" texte="À 48 h, chaque contenu comparé à ta médiane, défaut principal d’abord." />
+                <Point icon="objectif" couleur="golden" titre="Un cap et un rythme" texte="Un objectif clair et ton quota de publications de la semaine." />
+                <Point icon="questions" couleur="accent" titre="Ta mission du jour" texte="2 ou 3 stories qui font réagir, en 30 secondes chacune." />
+                <Point icon="golden" couleur="golden" titre="Sortir et tourner" texte="La belle lumière près de toi, un brief prêt avant de filmer." />
+                <Point icon="verdict" couleur="success" titre="Le verdict, franc" texte="À 48 h, comparé à ta médiane, défaut principal d’abord." />
               </View>
             </View>
           )}
@@ -60,9 +64,12 @@ export default function Bienvenue() {
           {etape === 1 && (
             <View style={{ gap: Spacing.four }}>
               <Txt variant="title">On commence par toi.</Txt>
-              <Field label="Ton prénom" value={p.prenom} onChangeText={(prenom) => set({ prenom })} placeholder="Sam" autoFocus autoComplete="given-name" textContentType="givenName" returnKeyType="next" />
+              <Field label="Ton prénom" icon="profil" value={p.prenom} onChangeText={(prenom) => set({ prenom })} placeholder="Sam" autoFocus autoComplete="given-name" textContentType="givenName" returnKeyType="next" />
               <View style={{ gap: Spacing.two }}>
-                <Txt variant="label">Où tu postes</Txt>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two }}>
+                  <Icon name="publie" size="sm" color="textSecondary" />
+                  <Txt variant="label">Où tu postes</Txt>
+                </View>
                 <View style={styles.wrap}>
                   {PLATEFORMES.map((x) => (
                     <Chip
@@ -82,13 +89,14 @@ export default function Bienvenue() {
               <Txt variant="title">Tu parles de quoi ?</Txt>
               <Field
                 label="Ta niche"
+                icon="cible"
                 value={p.niche}
                 onChangeText={(niche) => set({ niche })}
                 placeholder="Photo de rue en noir et blanc à Paris"
                 hint="Une phrase précise vaut mieux qu'un mot : l'Atelier s'en sert partout."
                 multiline
               />
-              <Field label="Qui te regarde (facultatif)" value={p.audience} onChangeText={(audience) => set({ audience })} placeholder="18-30 ans, passionnés de photo argentique" />
+              <Field label="Qui te regarde (facultatif)" icon="abonnes" value={p.audience} onChangeText={(audience) => set({ audience })} placeholder="18-30 ans, passionnés de photo argentique" />
             </View>
           )}
 
@@ -100,14 +108,15 @@ export default function Bienvenue() {
                   <Chip key={x} label={x} selected={p.objectif === x} onPress={() => set({ objectif: x })} />
                 ))}
               </View>
-              <Groupe titre="Publications par semaine">
+              <Groupe titre="Publications par semaine" icon="rythme">
                 {[1, 2, 3, 4, 5, 7].map((n) => (
                   <Chip key={n} label={String(n)} selected={quota === n} onPress={() => setQuota(n)} />
                 ))}
               </Groupe>
-              <Field label="Ta façon de parler (facultatif)" value={p.ton} onChangeText={(ton) => set({ ton })} placeholder="Calme, respectueux, un peu d'humour sec" />
+              <Field label="Ta façon de parler (facultatif)" icon="parole" value={p.ton} onChangeText={(ton) => set({ ton })} placeholder="Calme, respectueux, un peu d'humour sec" />
               <Field
                 label="Ce que tu refuses (facultatif)"
+                icon="interdit"
                 value={p.regles}
                 onChangeText={(regles) => set({ regles })}
                 placeholder="Pas de sujets clivants, jamais de plan en voiture"
@@ -119,8 +128,8 @@ export default function Bienvenue() {
 
           <View style={{ flex: etape === 0 ? 0 : 1 }} />
           <View style={{ gap: Spacing.two }}>
-            <Button label={etape === 0 ? 'Commencer' : etape === ETAPES - 1 ? 'Ouvrir mon atelier' : 'Continuer'} onPress={suivant} disabled={!peutContinuer} />
-            {etape > 0 && <Button kind="ghost" label="Retour" onPress={() => setEtape(etape - 1)} />}
+            <Button icon={etape === ETAPES - 1 ? 'ok' : 'suite'} label={etape === 0 ? 'Commencer' : etape === ETAPES - 1 ? 'Ouvrir mon atelier' : 'Continuer'} onPress={suivant} disabled={!peutContinuer} />
+            {etape > 0 && <Button kind="ghost" icon="retour" label="Retour" onPress={() => setEtape(etape - 1)} />}
           </View>
         </View>
       </ScrollView>
@@ -128,13 +137,12 @@ export default function Bienvenue() {
   );
 }
 
-function Point({ n, titre, texte }: { n: string; titre: string; texte: string }) {
-  const theme = useTheme();
+function Point({ icon, couleur, titre, texte }: { icon: NomIcone; couleur: 'accent' | 'golden' | 'success'; titre: string; texte: string }) {
   return (
-    <View style={{ flexDirection: 'row', gap: Spacing.three, alignItems: 'flex-start' }}>
-      <View style={[styles.num, { borderColor: theme.accent }]}>
-        <Txt variant="small" style={{ fontWeight: '800' }}>{n}</Txt>
-      </View>
+    <View style={{ flexDirection: 'row', gap: Spacing.three, alignItems: 'center' }}>
+      <Glass radius={14} style={styles.num}>
+        <Icon name={icon} size="lg" color={couleur} />
+      </Glass>
       <View style={{ flex: 1, gap: 2 }}>
         <Txt variant="heading">{titre}</Txt>
         <Txt variant="small" color="textSecondary">{texte}</Txt>
@@ -148,5 +156,5 @@ const styles = StyleSheet.create({
   dot: { flex: 1, height: 3, borderRadius: Radius.pill },
   hero: { fontSize: 44, lineHeight: 46, fontWeight: '800', letterSpacing: -1.6 },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
-  num: { width: 30, height: 30, borderRadius: 15, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+  num: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
 });

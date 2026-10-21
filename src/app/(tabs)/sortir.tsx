@@ -3,11 +3,13 @@ import { router } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
 import { FriseLumiere } from '@/components/lumiere';
-import { Button, Card, Check, Num, Screen, Section, Status, Txt, succes, tap } from '@/components/ui';
+import { Icon } from '@/components/icon';
+import { Button, Card, Check, IconButton, Num, Screen, Section, Status, Txt, succes, tap } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { IDEES_SORTIE } from '@/lib/options';
 import { lumieresDuJour } from '@/lib/soleil';
-import { today, useStore } from '@/lib/store';
+import { today } from '@/lib/dates';
+import { useStore } from '@/lib/store';
 import type { Position, Sortie } from '@/lib/types';
 
 const dateSortie = (s: Sortie) => {
@@ -34,10 +36,12 @@ export default function Sortir() {
     update((s) => ({ ...s, sorties: s.sorties.map((x) => (x.id === id ? { ...x, faite: !x.faite } : x)) }));
 
   return (
-    <Screen title="Sortir" kicker="Créer dehors">
-      <FriseLumiere />
+    <Screen title="Sortir" right={<IconButton icon="ajouter" label="Planifier une sortie" color="accent" onPress={() => router.push('/sortie/nouvelle')} />}>
+      <Section titre="Lumière du jour" icon="golden">
+        <FriseLumiere />
+      </Section>
 
-      <Section titre={`Tes sorties${faites ? ` · ${faites} faite${faites > 1 ? 's' : ''}` : ''}`}>
+      <Section titre={`Sorties${faites ? ` · ${faites} faite${faites > 1 ? 's' : ''}` : ''}`} icon="lieu">
         {aVenir.map((s) => {
           const t = dateSortie(s);
           const l = lumiereSortie(s, state.position);
@@ -53,9 +57,14 @@ export default function Sortir() {
                 <View style={{ flex: 1, gap: 4 }}>
                   <Txt variant="heading">{s.lieu}</Txt>
                   {s.note ? <Txt variant="small" color="textSecondary">{s.note}</Txt> : null}
-                  {lie ? <Txt variant="small" color="accent" onPress={() => { tap(); router.push(`/contenu/${lie.id}`); }}>Brief · {lie.titre}</Txt> : null}
-                  {l ? <Status label={l.type === 'golden' ? 'Golden hour' : 'Heure bleue'} color={l.type === 'golden' ? 'golden' : 'blue'} /> : null}
-                  {passee ? <Status label="Date passée" color="danger" /> : null}
+                  {lie ? (
+                    <View style={styles.lien}>
+                      <Icon name="brief" size="sm" color="accent" />
+                      <Txt variant="small" color="accent" onPress={() => { tap(); router.push(`/contenu/${lie.id}`); }}>{lie.titre}</Txt>
+                    </View>
+                  ) : null}
+                  {l ? <Status label={l.type === 'golden' ? 'Golden hour' : 'Heure bleue'} icon={l.type === 'golden' ? 'golden' : 'bleue'} color={l.type === 'golden' ? 'golden' : 'blue'} /> : null}
+                  {passee ? <Status label="Date passée" icon="attention" color="danger" /> : null}
                 </View>
               </View>
               <Check
@@ -69,13 +78,17 @@ export default function Sortir() {
             </Card>
           );
         })}
-        <Button label="Planifier une sortie" onPress={() => router.push('/sortie/nouvelle')} />
+        {aVenir.length === 0 ? <Button kind="secondary" icon="ajouter" label="Planifier une sortie" onPress={() => router.push('/sortie/nouvelle')} /> : null}
       </Section>
 
-      <Section titre="Idées de sortie">
+      <Section titre="Idées de sortie" icon="idee">
         {IDEES_SORTIE.map((i) => (
           <Card key={i.titre} onPress={() => router.push({ pathname: '/sortie/nouvelle', params: { lieu: i.titre } })} label={`Planifier : ${i.titre}`}>
-            <Txt variant="heading">{i.titre}</Txt>
+            <View style={styles.lien}>
+              <Icon name="lieu" size="md" color="golden" />
+              <Txt variant="heading" style={{ flex: 1 }}>{i.titre}</Txt>
+              <Icon name="ajouter" size="sm" color="accent" />
+            </View>
             <Txt variant="small" color="textSecondary">{i.pourquoi}</Txt>
           </Card>
         ))}
@@ -86,4 +99,5 @@ export default function Sortir() {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: Spacing.three, alignItems: 'flex-start' },
+  lien: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
 });

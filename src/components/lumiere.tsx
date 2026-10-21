@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { Icon } from '@/components/icon';
 import { Button, Card, ErrorNote, Num, Txt } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -36,9 +37,11 @@ export function ActiverPosition() {
   };
   return (
     <Card>
-      <Txt variant="label">Lumière</Txt>
-      <Txt>Active ta position pour savoir quand la lumière est belle là où tu es. Elle ne quitte pas ton téléphone.</Txt>
-      <Button kind="secondary" label="Activer" onPress={activer} loading={loading} />
+      <View style={styles.row}>
+        <Icon name="golden" size="xl" color="golden" />
+        <Txt style={{ flex: 1 }}>Quand la lumière est belle, là où tu es.</Txt>
+      </View>
+      <Button kind="secondary" icon="lieu" label="Activer ma position" onPress={activer} loading={loading} />
       <ErrorNote message={error} />
     </Card>
   );
@@ -47,24 +50,22 @@ export function ActiverPosition() {
 // Carte compacte : le prochain créneau et le temps qu'il reste.
 export function ProchaineLumiere() {
   const { state } = useStore();
-  const theme = useTheme();
   const t = useMaintenant();
   if (!state.position) return <ActiverPosition />;
   const l = prochaineLumiere(t, state.position.lat, state.position.lon);
   if (!l) return null;
   const couleur = l.type === 'golden' ? 'golden' : 'blue';
   return (
-    <Card>
+    <Card teinte={l.type === 'golden' ? 'rgba(245,158,11,0.07)' : 'rgba(99,102,241,0.08)'} label={`${l.nom} ${l.enCours ? 'en cours' : `dans ${duree(l.minutes)}`}`}>
       <View style={styles.row}>
-        <View style={[styles.pastille, { backgroundColor: theme[couleur] }]} />
+        <Icon name={l.type === 'golden' ? 'golden' : 'bleue'} size="md" color={couleur} />
         <Txt variant="label" style={{ flex: 1 }}>{l.nom}{state.position.ville ? ` · ${state.position.ville}` : ''}</Txt>
       </View>
-      <View style={[styles.row, { alignItems: 'baseline' }]}>
-        <Num size={40} color={couleur}>{l.enCours ? 'Maintenant' : duree(l.minutes)}</Num>
+      <Num size={52} color={couleur}>{l.enCours ? 'Maintenant' : duree(l.minutes)}</Num>
+      <View style={styles.row}>
+        <Icon name="heure" size="sm" color="textSecondary" />
+        <Num size={17} color="textSecondary">{heure(l.debut)} → {heure(l.fin)}</Num>
       </View>
-      <Txt color="textSecondary">
-        {l.enCours ? `Encore ${duree(l.minutes)}, jusqu’à ${heure(l.fin)}.` : `Commence dans ${duree(l.minutes)} · de ${heure(l.debut)} à ${heure(l.fin)}.`}
-      </Txt>
     </Card>
   );
 }
@@ -79,18 +80,20 @@ export function FriseLumiere() {
   const prochain = creneaux.find((c) => c.fin > t);
   return (
     <Card>
-      <Txt variant="label">Lumière aujourd&apos;hui{state.position.ville ? ` · ${state.position.ville}` : ''}</Txt>
       {creneaux.map((c) => {
         const passe = c.fin <= t;
         const actif = c === prochain;
+        const couleur = c.type === 'golden' ? 'golden' : 'blue';
         return (
-          <View key={c.nom} style={[styles.creneau, { opacity: passe ? 0.4 : 1 }]}>
-            <View style={[styles.barre, { backgroundColor: theme[c.type === 'golden' ? 'golden' : 'blue'] }]} />
-            <View style={{ flex: 1 }}>
-              <Txt style={{ fontWeight: actif ? '700' : '400' }}>{c.nom}</Txt>
-              {actif ? <Txt variant="small" color="textSecondary">{c.debut <= t ? 'En cours' : `Dans ${duree(Math.round((c.debut.getTime() - t.getTime()) / 60_000))}`}</Txt> : null}
+          <View key={c.nom} style={[styles.creneau, { opacity: passe ? 0.35 : 1 }]} accessibilityLabel={`${c.nom} de ${heure(c.debut)} à ${heure(c.fin)}`}>
+            <View style={[styles.rond, { backgroundColor: actif ? theme[couleur] : `${theme[couleur]}22` }]}>
+              <Icon name={c.type === 'golden' ? 'golden' : 'bleue'} size="sm" color={actif ? 'background' : couleur} />
             </View>
-            <Num size={18} color={passe ? 'textSecondary' : 'text'}>{heure(c.debut)}–{heure(c.fin)}</Num>
+            <View style={{ flex: 1 }}>
+              <Txt style={{ fontWeight: actif ? '700' : '500' }}>{c.nom.replace('Golden hour', 'Golden').replace('Heure bleue', 'Bleue')}</Txt>
+              {actif ? <Txt variant="small" color={couleur}>{c.debut <= t ? 'En cours' : `Dans ${duree(Math.round((c.debut.getTime() - t.getTime()) / 60_000))}`}</Txt> : null}
+            </View>
+            <Num size={18} color={passe ? 'textSecondary' : 'text'}>{heure(c.debut)}</Num>
           </View>
         );
       })}
@@ -100,7 +103,6 @@ export function FriseLumiere() {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
-  pastille: { width: 8, height: 8, borderRadius: 4 },
-  creneau: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, paddingVertical: Spacing.one },
-  barre: { width: 3, alignSelf: 'stretch', borderRadius: 2 },
+  creneau: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, paddingVertical: 4 },
+  rond: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
 });

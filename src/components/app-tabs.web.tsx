@@ -1,16 +1,17 @@
-// Version web (aperçu navigateur) : barre d'onglets en bas, comme sur iPhone.
+// Version web (aperçu navigateur) : capsule de verre flottante en bas, icônes seules, comme la barre iOS 26.
 import { Tabs, TabList, TabTrigger, TabSlot, type TabTriggerSlotProps, type TabListProps } from 'expo-router/ui';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { Glass } from '@/components/glass';
+import { Icon, type NomIcone } from '@/components/icon';
 import { Radius, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
 
-const ONGLETS = [
-  { name: 'index', href: '/', label: "Aujourd'hui" },
-  { name: 'creer', href: '/creer', label: 'Créer' },
-  { name: 'sortir', href: '/sortir', label: 'Sortir' },
-  { name: 'objectif', href: '/objectif', label: 'Objectif' },
-] as const;
+const ONGLETS: { name: string; href: '/' | '/creer' | '/sortir' | '/objectif'; label: string; icon: NomIcone }[] = [
+  { name: 'index', href: '/', label: 'Aujourd’hui', icon: 'aujourdhui' },
+  { name: 'creer', href: '/creer', label: 'Créer', icon: 'creer' },
+  { name: 'sortir', href: '/sortir', label: 'Sortir', icon: 'sortir' },
+  { name: 'objectif', href: '/objectif', label: 'Objectif', icon: 'objectif' },
+];
 
 export default function AppTabs() {
   return (
@@ -20,7 +21,7 @@ export default function AppTabs() {
         <Bar>
           {ONGLETS.map((o) => (
             <TabTrigger key={o.name} name={o.name} href={o.href} asChild>
-              <TabButton>{o.label}</TabButton>
+              <TabButton icon={o.icon} label={o.label} />
             </TabTrigger>
           ))}
         </Bar>
@@ -29,37 +30,33 @@ export default function AppTabs() {
   );
 }
 
-function TabButton({ children, isFocused, ref: _ref, ...props }: TabTriggerSlotProps) {
-  const theme = useTheme();
+function TabButton({ isFocused, icon, label, ref: _ref, ...props }: TabTriggerSlotProps & { icon: NomIcone; label: string }) {
   return (
-    <Pressable {...props} style={({ pressed }) => [styles.button, pressed && { opacity: 0.7 }]}>
-      <Text style={[styles.label, { color: isFocused ? theme.accent : theme.textSecondary }]}>{children}</Text>
+    <Pressable {...props} accessibilityRole="tab" accessibilityLabel={label} accessibilityState={{ selected: !!isFocused }} style={({ pressed }) => [styles.button, pressed && { transform: [{ scale: 0.92 }] }]}>
+      <View style={[styles.pastille, isFocused && styles.active]}>
+        <Icon name={icon} size={22} color={isFocused ? 'accent' : 'textSecondary'} />
+      </View>
     </Pressable>
   );
 }
 
 function Bar(props: TabListProps) {
-  const theme = useTheme();
   return (
-    <View {...props} style={[styles.bar, { backgroundColor: theme.backgroundElement, borderColor: theme.border }]}>
-      {props.children}
+    <View style={styles.zone} pointerEvents="box-none">
+      <Glass radius={Radius.pill} intensite={60} style={styles.bar}>
+        <View {...props} style={styles.rangee}>
+          {props.children}
+        </View>
+      </Glass>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  bar: {
-    position: 'absolute',
-    bottom: Spacing.three,
-    left: Spacing.three,
-    right: Spacing.three,
-    maxWidth: 560,
-    marginHorizontal: 'auto',
-    flexDirection: 'row',
-    borderRadius: Radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: Spacing.one,
-  },
-  button: { flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center' },
-  label: { fontSize: 13, fontWeight: '700' },
+  zone: { position: 'absolute', bottom: Spacing.three, left: 0, right: 0, alignItems: 'center' },
+  bar: { padding: 6 },
+  rangee: { flexDirection: 'row', gap: 4 },
+  button: { width: 64, height: 48, alignItems: 'center', justifyContent: 'center' },
+  pastille: { width: 56, height: 40, borderRadius: Radius.pill, alignItems: 'center', justifyContent: 'center' },
+  active: { backgroundColor: 'rgba(91,140,255,0.18)' },
 });

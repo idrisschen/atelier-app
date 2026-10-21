@@ -23,10 +23,10 @@ export function calculeVerdict(stats: Stats, precedents: Contenu[]): Verdict {
     niveau === 'repere'
       ? 'Premier repère posé. Les prochains se compareront à lui.'
       : niveau === 'haut'
-        ? `${fois(ratio!)} ta médiane. Ce format marche, refais-le.`
+        ? 'Ce format marche. Refais-le.'
         : niveau === 'moyen'
           ? 'Dans ta moyenne. Rien de cassé, rien de neuf.'
-          : `${fois(ratio!)} ta médiane. Il a décroché quelque part.`;
+          : 'Il a décroché quelque part.';
 
   const v = Math.max(stats.vues, 1);
   const reactions = (stats.likes + stats.commentaires + stats.partages) / v;

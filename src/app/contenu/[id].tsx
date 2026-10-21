@@ -3,13 +3,15 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Platform, StyleSheet, View } from 'react-native';
 
-import { BoardingPass, couleurVerdict } from '@/components/boarding-pass';
+import { BoardingPass, couleurVerdict, iconeVerdict } from '@/components/boarding-pass';
+import { Icon, type NomIcone } from '@/components/icon';
 import { Button, Card, Check, Divider, ErrorNote, Field, Num, Screen, Section, Txt, succes, tap } from '@/components/ui';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { askAtelier } from '@/lib/ai';
 import { briefLocal, FORMATS } from '@/lib/brief';
-import { ecartJours, today, useStore } from '@/lib/store';
+import { ecartJours, today } from '@/lib/dates';
+import { useStore } from '@/lib/store';
 import type { Brief, Contenu, Stats } from '@/lib/types';
 import { calculeVerdict, fois } from '@/lib/verdict';
 
@@ -42,7 +44,7 @@ export default function ContenuScreen() {
   };
 
   return (
-    <Screen back title={FORMATS[c.format].label} kicker={c.plateforme}>
+    <Screen back title={FORMATS[c.format].label}>
       <BoardingPass c={c} />
       {c.statut === 'idee' ? <PreparerBrief c={c} modifie={modifie} /> : null}
       {c.statut === 'verdict' && c.verdict ? <VerdictCard c={c} onModifier={() => modifie({ statut: 'publie' })} /> : null}
@@ -51,6 +53,7 @@ export default function ContenuScreen() {
         <>
           <PlansCard c={c} modifie={modifie} />
           <Button
+            icon="publie"
             label="C’est publié"
             onPress={() => {
               succes();
@@ -61,7 +64,7 @@ export default function ContenuScreen() {
         </>
       ) : null}
       {c.brief && (c.statut === 'publie' || c.statut === 'verdict') ? <BriefDetail brief={c.brief} replie /> : null}
-      <Button kind="danger" label="Supprimer" onPress={supprimer} />
+      <Button kind="danger" icon="supprimer" label="Supprimer" onPress={supprimer} />
     </Screen>
   );
 }
@@ -92,9 +95,11 @@ function PreparerBrief({ c, modifie }: { c: Contenu; modifie: (p: Partial<Conten
   };
   return (
     <Card>
-      <Txt variant="heading">Prépare le tournage</Txt>
-      <Txt variant="small" color="textSecondary">Accroches à filmer, plans à ramener, phrases à dire, ce qu’il faut éviter.</Txt>
-      <Button label="Préparer le brief" onPress={preparer} loading={loading} />
+      <View style={styles.row}>
+        <Icon name="brief" size="xl" color="accent" />
+        <Txt variant="small" color="textSecondary" style={{ flex: 1 }}>Accroches, plans à ramener, phrases à dire, ce qu’il faut éviter.</Txt>
+      </View>
+      <Button icon={state.reglages.ia ? 'ia' : 'brief'} label="Préparer le brief" onPress={preparer} loading={loading} />
       <ErrorNote message={error} />
     </Card>
   );
@@ -110,7 +115,7 @@ function PlansCard({ c, modifie }: { c: Contenu; modifie: (p: Partial<Contenu>) 
     modifie({ plansFaits: faits, statut: faits.length > 0 ? 'tournage' : 'brief' });
   };
   return (
-    <Section titre={`Plans à ramener · ${c.plansFaits.length}/${plans.length}`}>
+    <Section titre={`Plans · ${c.plansFaits.length}/${plans.length}`} icon="plans">
       <Card>
         {plans.map((p, i) => (
           <Check key={i} checked={c.plansFaits.includes(i)} label={`${p.plan} — ${p.combien}`} onPress={() => basculer(i)} />
@@ -123,18 +128,23 @@ function PlansCard({ c, modifie }: { c: Contenu; modifie: (p: Partial<Contenu>) 
 function BriefDetail({ brief, replie }: { brief: Brief; replie?: boolean }) {
   const theme = useTheme();
   const [ouvert, setOuvert] = useState(!replie);
-  if (!ouvert) return <Button kind="secondary" label="Revoir le brief" onPress={() => setOuvert(true)} />;
+  if (!ouvert) return <Button kind="secondary" icon="brief" label="Revoir le brief" onPress={() => setOuvert(true)} />;
   return (
     <>
-      <Section titre="Objectif">
+      <Section titre="Objectif" icon="cible">
         <Txt>{brief.objectif}</Txt>
       </Section>
-      <Section titre="3 accroches à filmer">
+      <Section titre="Accroches" icon="zap">
         {brief.accroches.map((a, i) => (
           <Card key={i}>
-            <Txt variant="label" color="accent">Accroche {i + 1}</Txt>
-            <Txt selectable variant="heading">« {a.phrase} »</Txt>
-            <Txt variant="small" color="textSecondary">Image · {a.image}</Txt>
+            <View style={styles.row}>
+              <Num size={20} color="accent">{i + 1}</Num>
+              <Txt selectable variant="heading" style={{ flex: 1 }}>« {a.phrase} »</Txt>
+            </View>
+            <View style={[styles.row, { alignItems: 'flex-start' }]}>
+              <Icon name="tournage" size="sm" color="textSecondary" />
+              <Txt variant="small" color="textSecondary" style={{ flex: 1 }}>{a.image}</Txt>
+            </View>
             {a.texte_ecran ? (
               <View style={[styles.ecran, { backgroundColor: theme.background }]}>
                 <Txt selectable style={{ fontWeight: '900', letterSpacing: -0.3 }}>{a.texte_ecran}</Txt>
@@ -143,17 +153,17 @@ function BriefDetail({ brief, replie }: { brief: Brief; replie?: boolean }) {
           </Card>
         ))}
       </Section>
-      <Section titre="Phrases à dire">
+      <Section titre="Phrases à dire" icon="parole">
         <Card>
           {brief.phrases.map((p, i) => (
-            <Txt key={i} selectable>« {p} »</Txt>
+            <Ligne key={i} icon="parole" couleur="accent" texte={`« ${p} »`} />
           ))}
         </Card>
       </Section>
-      <Section titre="À éviter">
+      <Section titre="À éviter" icon="interdit">
         <Card>
           {brief.a_eviter.map((p, i) => (
-            <Txt key={i} color="textSecondary">✕  {p}</Txt>
+            <Ligne key={i} icon="interdit" couleur="danger" texte={p} />
           ))}
         </Card>
       </Section>
@@ -163,14 +173,14 @@ function BriefDetail({ brief, replie }: { brief: Brief; replie?: boolean }) {
 
 // ---------- publié → verdict ----------
 
-const CHAMPS: { cle: keyof Stats; label: string; requis?: boolean }[] = [
-  { cle: 'vues', label: 'Vues', requis: true },
-  { cle: 'likes', label: 'J’aime' },
-  { cle: 'commentaires', label: 'Commentaires' },
-  { cle: 'partages', label: 'Partages' },
-  { cle: 'enregistrements', label: 'Enregistrements' },
-  { cle: 'abonnes', label: 'Abonnés gagnés' },
-  { cle: 'zap', label: 'Zap à 3 s (%)' },
+const CHAMPS: { cle: keyof Stats; label: string; icon: NomIcone; requis?: boolean }[] = [
+  { cle: 'vues', label: 'Vues', icon: 'vues', requis: true },
+  { cle: 'likes', label: 'J’aime', icon: 'jaime' },
+  { cle: 'commentaires', label: 'Commentaires', icon: 'commentaires' },
+  { cle: 'partages', label: 'Partages', icon: 'partages' },
+  { cle: 'enregistrements', label: 'Enregistrements', icon: 'enregistrements' },
+  { cle: 'abonnes', label: 'Abonnés', icon: 'abonnes' },
+  { cle: 'zap', label: 'Zap 3 s %', icon: 'zap' },
 ];
 
 const nombre = (s: string) => {
@@ -208,7 +218,10 @@ function SaisieStats({ c, modifie }: { c: Contenu; modifie: (p: Partial<Contenu>
 
   return (
     <Card>
-      <Txt variant="heading">{age >= 2 ? 'L’heure du verdict' : `Verdict dans ${2 - age} jour${2 - age > 1 ? 's' : ''}`}</Txt>
+      <View style={styles.row}>
+        <Icon name="verdict" size="lg" color={age >= 2 ? 'warning' : 'textSecondary'} />
+        <Txt variant="heading">{age >= 2 ? 'L’heure du verdict' : `Verdict dans ${2 - age} jour${2 - age > 1 ? 's' : ''}`}</Txt>
+      </View>
       <Txt variant="small" color="textSecondary">
         {age >= 2
           ? 'Recopie les chiffres de l’app (statistiques du post). Le verdict compare ce contenu à ta médiane.'
@@ -217,11 +230,11 @@ function SaisieStats({ c, modifie }: { c: Contenu; modifie: (p: Partial<Contenu>
       <View style={styles.grille}>
         {CHAMPS.map((f) => (
           <View key={f.cle} style={styles.cellule}>
-            <Field label={f.label} value={vals[f.cle]} onChangeText={(v) => setVals((x) => ({ ...x, [f.cle]: v }))} keyboardType="decimal-pad" placeholder={f.requis ? '0' : '—'} />
+            <Field label={f.label} icon={f.icon} value={vals[f.cle]} onChangeText={(v) => setVals((x) => ({ ...x, [f.cle]: v }))} keyboardType="decimal-pad" placeholder={f.requis ? '0' : '—'} />
           </View>
         ))}
       </View>
-      <Button label="Rendre le verdict" onPress={rendre} disabled={!vals.vues.trim()} />
+      <Button icon="verdict" label="Rendre le verdict" onPress={rendre} disabled={!vals.vues.trim()} />
       <ErrorNote message={error} />
     </Card>
   );
@@ -232,28 +245,42 @@ function VerdictCard({ c, onModifier }: { c: Contenu; onModifier: () => void }) 
   const couleur = couleurVerdict(c);
   return (
     <Card>
-      <Txt variant="label" color={couleur}>Verdict</Txt>
+      <View style={styles.row}>
+        <Icon name={iconeVerdict(c)} size="md" color={couleur} />
+        <Txt variant="label" color={couleur}>Verdict</Txt>
+      </View>
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: Spacing.two }}>
         <Num size={56} color={couleur}>{v.ratio ? fois(v.ratio) : c.stats!.vues.toLocaleString('fr-FR')}</Num>
         <Txt color="textSecondary">{v.ratio ? 'ta médiane' : 'vues'}</Txt>
       </View>
       <Txt variant="heading">{v.titre}</Txt>
       <Divider />
-      <Txt variant="label">Le défaut principal</Txt>
-      <Txt>{v.defaut}</Txt>
-      <Txt variant="label" style={{ marginTop: Spacing.two }}>Pour le prochain</Txt>
+      <Ligne icon={v.niveau === 'haut' ? 'verdict' : 'attention'} couleur={v.niveau === 'haut' ? 'success' : 'warning'} texte={v.defaut} fort />
+      <Divider dashed />
       {v.actions.map((a, i) => (
         <View key={i} style={{ flexDirection: 'row', gap: Spacing.two }}>
           <Num size={16} color="accent">{i + 1}</Num>
           <Txt style={{ flex: 1 }}>{a}</Txt>
         </View>
       ))}
-      <Button kind="ghost" label="Corriger les chiffres" onPress={onModifier} />
+      <Button kind="ghost" icon="editer" label="Corriger les chiffres" onPress={onModifier} />
     </Card>
   );
 }
 
+function Ligne({ icon, couleur, texte, fort }: { icon: NomIcone; couleur: 'accent' | 'danger' | 'success' | 'warning'; texte: string; fort?: boolean }) {
+  return (
+    <View style={[styles.row, { alignItems: 'flex-start' }]}>
+      <View style={{ paddingTop: 3 }}>
+        <Icon name={icon} size="sm" color={couleur} />
+      </View>
+      <Txt selectable style={[{ flex: 1 }, fort ? { fontWeight: '600' } : null]}>{texte}</Txt>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   ecran: { borderRadius: Radius.small, padding: Spacing.two, alignSelf: 'flex-start' },
   grille: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.three },
   cellule: { width: '46%', flexGrow: 1 },

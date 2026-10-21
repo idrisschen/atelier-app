@@ -4,7 +4,8 @@ import { useState } from 'react';
 
 import { Button, Chip, ErrorNote, Field, Groupe, Screen } from '@/components/ui';
 import { heure, lumieresDuJour } from '@/lib/soleil';
-import { ajouteJours, newId, today, useStore } from '@/lib/store';
+import { ajouteJours, newId, today } from '@/lib/dates';
+import { useStore } from '@/lib/store';
 import type { Sortie } from '@/lib/types';
 
 const JOURS = 7;
@@ -40,9 +41,9 @@ export default function NouvelleSortie() {
   };
 
   return (
-    <Screen title="Nouvelle sortie" kicker="Sortir">
-      <Field label="Où" value={lieu} onChangeText={setLieu} placeholder="Marché du Chaudron" />
-      <Groupe titre="Quand">
+    <Screen back title="Nouvelle sortie">
+      <Field label="Où" icon="lieu" value={lieu} onChangeText={setLieu} placeholder="Marché du Chaudron" />
+      <Groupe titre="Quand" icon="date">
         {Array.from({ length: JOURS }, (_, i) => {
           const j = ajouteJours(today(), i);
           const [a, b, c] = j.split('-').map(Number);
@@ -50,22 +51,21 @@ export default function NouvelleSortie() {
           return <Chip key={j} label={label} selected={jour === j} onPress={() => setJour(j)} />;
         })}
       </Groupe>
-      <Groupe titre={lumieres.length ? 'Heure · golden hour proposée' : 'Heure'}>
+      <Groupe titre={lumieres.length ? 'Golden hour' : 'Heure'} icon={lumieres.length ? 'golden' : 'heure'}>
         {suggestions.map((s) => (
           <Chip key={s.label} label={s.label} selected={heureChoisie === s.valeur} onPress={() => setHeure(s.valeur)} />
         ))}
       </Groupe>
-      <Field label="Ou une autre heure" value={heureChoisie} onChangeText={setHeure} placeholder="18:30" keyboardType="numbers-and-punctuation" />
-      <Field label="Note (facultatif)" value={note} onChangeText={setNote} placeholder="Demander au boulanger s’il accepte d’être filmé" />
+      <Field label="Ou une autre heure" icon="heure" value={heureChoisie} onChangeText={setHeure} placeholder="18:30" keyboardType="numbers-and-punctuation" />
+      <Field label="Note" icon="editer" value={note} onChangeText={setNote} placeholder="Demander au boulanger s’il accepte d’être filmé" />
       {enCours.length ? (
-        <Groupe titre="Pour quel contenu (facultatif)">
+        <Groupe titre="Pour quel contenu" icon="brief">
           {enCours.map((c) => (
             <Chip key={c.id} label={c.titre.length > 28 ? `${c.titre.slice(0, 27)}…` : c.titre} selected={contenuId === c.id} onPress={() => setContenuId(contenuId === c.id ? undefined : c.id)} />
           ))}
         </Groupe>
       ) : null}
-      <Button label="Planifier" onPress={enregistrer} disabled={lieu.trim().length < 2 || !heureChoisie} />
-      <Button kind="ghost" label="Annuler" onPress={() => router.back()} />
+      <Button icon="ok" label="Planifier" onPress={enregistrer} disabled={lieu.trim().length < 2 || !heureChoisie} />
       <ErrorNote message={error} />
     </Screen>
   );

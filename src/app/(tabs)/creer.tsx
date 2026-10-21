@@ -4,14 +4,15 @@ import { useState } from 'react';
 import { View } from 'react-native';
 
 import { BoardingPass } from '@/components/boarding-pass';
-import { Button, Card, Chip, Screen, Txt } from '@/components/ui';
+import { Icon, type NomIcone } from '@/components/icon';
+import { Card, Chip, IconButton, Screen, Txt } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { useStore } from '@/lib/store';
 import type { Statut } from '@/lib/types';
 
-const FILTRES: { label: string; statuts: Statut[] }[] = [
-  { label: 'En cours', statuts: ['idee', 'brief', 'tournage'] },
-  { label: 'Publiés', statuts: ['publie', 'verdict'] },
+const FILTRES: { label: string; icon: NomIcone; statuts: Statut[] }[] = [
+  { label: 'En cours', icon: 'tournage', statuts: ['idee', 'brief', 'tournage'] },
+  { label: 'Publiés', icon: 'publie', statuts: ['publie', 'verdict'] },
 ];
 
 export default function Creer() {
@@ -20,15 +21,15 @@ export default function Creer() {
   const liste = state.contenus.filter((c) => FILTRES[filtre].statuts.includes(c.statut));
 
   return (
-    <Screen title="Créer" kicker="Tes contenus">
-      <Button label="Nouvelle idée" onPress={() => router.push('/contenu/nouveau')} />
+    <Screen title="Créer" right={<IconButton icon="ajouter" label="Nouvelle idée" color="accent" onPress={() => router.push('/contenu/nouveau')} />}>
       <View style={{ flexDirection: 'row', gap: Spacing.two }}>
         {FILTRES.map((f, i) => (
-          <Chip key={f.label} label={`${f.label} · ${state.contenus.filter((c) => f.statuts.includes(c.statut)).length}`} selected={filtre === i} onPress={() => setFiltre(i)} />
+          <Chip key={f.label} icon={f.icon} label={`${f.label} · ${state.contenus.filter((c) => f.statuts.includes(c.statut)).length}`} selected={filtre === i} onPress={() => setFiltre(i)} />
         ))}
       </View>
       {liste.length === 0 ? (
-        <Card>
+        <Card onPress={filtre === 0 ? () => router.push('/contenu/nouveau') : undefined} label="Nouvelle idée">
+          <Icon name={filtre === 0 ? 'idee' : 'publie'} size="xl" color={filtre === 0 ? 'warning' : 'success'} />
           <Txt variant="heading">{filtre === 0 ? 'Rien en préparation' : 'Rien de publié pour l’instant'}</Txt>
           <Txt variant="small" color="textSecondary">
             {filtre === 0
