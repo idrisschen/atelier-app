@@ -36,7 +36,7 @@ export default function Bilan() {
         ))}
       </View>
 
-      <CarteBilan de="#16124A" vers="#1D4AA8" nom="atelier-bilan" lien={{ label: 'Mes contenus', onPress: () => router.push('/contenus') }}>
+      <CarteBilan de="#16124A" vers="#1D4AA8" nom="rush-bilan" lien={{ label: 'Mes contenus', onPress: () => router.push('/contenus') }}>
         <View style={styles.entete}>
           <Text style={styles.titreCarte}>Bilan de créateur</Text>
           <Libelle color={BLANC_DOUX}>{[prenom, libellePeriode].filter(Boolean).join(' · ')}</Libelle>
@@ -51,7 +51,7 @@ export default function Bilan() {
         </View>
       </CarteBilan>
 
-      <CarteBilan de="#B23A1E" vers="#5A1410" nom="atelier-serie" lien={{ label: 'Stories du jour', onPress: () => router.navigate('/') }}>
+      <CarteBilan de="#B23A1E" vers="#5A1410" nom="rush-serie" lien={{ label: 'Stories du jour', onPress: () => router.navigate('/') }}>
         <Num size={84} color="text">{b.serie}</Num>
         <Text style={styles.phrase}>{b.serie > 1 ? 'semaines d’affilée tenues' : 'semaine d’affilée tenue'}</Text>
         <Text style={[styles.detail, { color: '#FFB4A2' }]}>
@@ -65,7 +65,7 @@ export default function Bilan() {
 
       <MesReseaux />
 
-      <CarteBilan de="#F1EEFF" vers="#C9C3F2" encre={ENCRE} nom="atelier-meilleur" lien={{ label: 'Tous les verdicts', onPress: () => router.push('/contenus') }}>
+      <CarteBilan de="#F1EEFF" vers="#C9C3F2" encre={ENCRE} nom="rush-meilleur" lien={{ label: 'Tous les verdicts', onPress: () => router.push('/contenus') }}>
         <Text style={[styles.phrase, { color: ENCRE, paddingRight: 48 }]}>Ton meilleur contenu</Text>
         {b.meilleur ? (
           <>
@@ -90,15 +90,15 @@ function Objectif() {
   const o = state.objectif;
   if (!o) {
     return (
-      <CarteBilan de="#7A4A08" vers="#3A2205" nom="atelier-objectif" lien={{ label: 'Fixer mon objectif', onPress: () => router.push('/objectif') }}>
+      <CarteBilan de="#7A4A08" vers="#3A2205" nom="rush-objectif" lien={{ label: 'Fixer mon objectif', onPress: () => router.push('/objectif') }}>
         <Text style={[styles.phrase, { paddingRight: 48 }]}>Un seul chiffre à faire monter</Text>
-        <Text style={[styles.detail, { color: '#F8D79B' }]}>Tes abonnés aujourd’hui, ta cible, une échéance : l’Atelier te dit le rythme à tenir.</Text>
+        <Text style={[styles.detail, { color: '#F8D79B' }]}>Tes abonnés aujourd’hui, ta cible, une échéance : Rush te dit le rythme à tenir.</Text>
       </CarteBilan>
     );
   }
   const a = avancement(o);
   return (
-    <CarteBilan de="#8A5A0B" vers="#3A2205" nom="atelier-objectif" lien={{ label: 'Mon objectif', onPress: () => router.push('/objectif') }}>
+    <CarteBilan de="#8A5A0B" vers="#3A2205" nom="rush-objectif" lien={{ label: 'Mon objectif', onPress: () => router.push('/objectif') }}>
       <Libelle color="#F8D79B">Objectif · {o.plateforme}</Libelle>
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: Spacing.two, flexWrap: 'wrap' }}>
         <Num size={56}>{nombre(a.actuel)}</Num>

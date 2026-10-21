@@ -61,7 +61,7 @@ export default function Reglages() {
           <Icon name="ia" size="lg" color="accent" />
           <View style={{ flex: 1, gap: 2 }}>
             <Txt variant="heading">Assistant IA</Txt>
-            <Txt variant="small" color="textSecondary">Option. Les stories et les briefs sont alors rédigés par Claude à partir de ton profil. Sans elle, l&apos;Atelier marche avec ses propres règles.</Txt>
+            <Txt variant="small" color="textSecondary">Option. Les stories et les briefs sont alors rédigés par Claude à partir de ton profil. Sans elle, Rush marche avec ses propres règles.</Txt>
           </View>
           <Switch
             accessibilityLabel="Assistant IA"

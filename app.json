@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Atelier",
+    "name": "Rush",
     "slug": "atelier",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -42,7 +42,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "L'Atelier utilise ta position pour calculer la golden hour près de toi. Elle ne quitte pas ton téléphone."
+          "locationWhenInUsePermission": "Rush utilise ta position pour calculer la golden hour près de toi. Elle ne quitte pas ton téléphone."
         }
       ],
       "expo-sharing"

@@ -50,7 +50,7 @@ export default function Bienvenue() {
 
           {etape === 0 && (
             <View style={{ gap: Spacing.four, flex: 1, justifyContent: 'center' }}>
-              <Txt variant="label" color="accent">Atelier</Txt>
+              <Txt variant="label" color="accent">Rush</Txt>
               <Txt style={styles.hero}>Sors créer.{'\n'}On te dit la vérité après.</Txt>
               <View style={{ gap: Spacing.three }}>
                 <Point icon="objectif" couleur="golden" titre="Un cap et un rythme" texte="Un objectif clair et ton quota de publications de la semaine." />
@@ -93,7 +93,7 @@ export default function Bienvenue() {
                 value={p.niche}
                 onChangeText={(niche) => set({ niche })}
                 placeholder="Photo de rue en noir et blanc à Paris"
-                hint="Une phrase précise vaut mieux qu'un mot : l'Atelier s'en sert partout."
+                hint="Une phrase précise vaut mieux qu'un mot : Rush s'en sert partout."
                 multiline
               />
               <Field label="Qui te regarde (facultatif)" icon="abonnes" value={p.audience} onChangeText={(audience) => set({ audience })} placeholder="18-30 ans, passionnés de photo argentique" />
@@ -128,7 +128,7 @@ export default function Bienvenue() {
 
           <View style={{ flex: etape === 0 ? 0 : 1 }} />
           <View style={{ gap: Spacing.two }}>
-            <Button icon={etape === ETAPES - 1 ? 'ok' : 'suite'} label={etape === 0 ? 'Commencer' : etape === ETAPES - 1 ? 'Ouvrir mon atelier' : 'Continuer'} onPress={suivant} disabled={!peutContinuer} />
+            <Button icon={etape === ETAPES - 1 ? 'ok' : 'suite'} label={etape === 0 ? 'Commencer' : etape === ETAPES - 1 ? 'Ouvrir Rush' : 'Continuer'} onPress={suivant} disabled={!peutContinuer} />
             {etape > 0 && <Button kind="ghost" icon="retour" label="Retour" onPress={() => setEtape(etape - 1)} />}
           </View>
         </View>
