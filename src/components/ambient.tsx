@@ -1,5 +1,5 @@
-// Fond « cinéma » : un dégradé profond et deux halos de lumière qui dérivent lentement derrière le verre.
-// Ils s'arrêtent si l'utilisateur a demandé moins d'animations.
+// Fond « cinéma » : un dégradé profond et un halo bleu qui dérive lentement derrière le verre.
+// Il s'arrête si l'utilisateur a demandé moins d'animations.
 import { useEffect, useId } from 'react';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
@@ -48,7 +48,6 @@ export function Ambient({ accent }: { accent?: string }) {
         <Rect width="100%" height="100%" fill={`url(#${fond})`} />
       </Svg>
       <Halo couleur={accent ?? theme.accent} taille={width * 1.3} x={width * 0.15} y={height * 0.08} duree={14000} amplitude={40} />
-      <Halo couleur={theme.golden} taille={width * 1.1} x={width * 0.95} y={height * 0.55} duree={18000} amplitude={-50} />
     </View>
   );
 }
