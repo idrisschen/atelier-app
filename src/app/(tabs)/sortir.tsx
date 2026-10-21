@@ -69,7 +69,7 @@ export default function Sortir() {
               </View>
               <Check
                 checked={false}
-                label="J’y suis allé"
+                label="Sortie faite"
                 onPress={() => {
                   succes();
                   basculer(s.id);

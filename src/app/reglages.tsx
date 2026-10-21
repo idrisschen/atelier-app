@@ -78,7 +78,7 @@ export default function Reglages() {
           <Txt variant="heading">Tes données</Txt>
         </View>
         <Txt variant="small" color="textSecondary">
-          Tout reste sur ce téléphone. Si l&apos;assistant IA est activé, seul le texte de ta demande part vers l&apos;IA, le temps de la réponse.
+          Tout reste sur ce téléphone. Si l&apos;assistant IA est activé, ton profil (prénom, niche, audience, ton, règles) et ta demande partent vers Claude (Anthropic), le temps de la réponse.
         </Txt>
         <Button kind="danger" icon="supprimer" label="Tout effacer" onPress={effacer} />
       </Card>

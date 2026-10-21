@@ -96,7 +96,7 @@ export default function Bienvenue() {
                 hint="Une phrase précise vaut mieux qu'un mot : Rush s'en sert partout."
                 multiline
               />
-              <Field label="Qui te regarde (facultatif)" icon="abonnes" value={p.audience} onChangeText={(audience) => set({ audience })} placeholder="18-30 ans, passionnés de photo argentique" />
+              <Field label="Qui te regarde (facultatif)" icon="abonnes" value={p.audience} onChangeText={(audience) => set({ audience })} placeholder="18-30 ans, fans de photo argentique" />
             </View>
           )}
 

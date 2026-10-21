@@ -201,6 +201,7 @@ function Missions() {
       titre={`Stories · ${duJour.faites.length}/${duJour.missions.length}`}
       icon="questions"
       action={<IconButton icon="refaire" label="Refaire mes stories" taille={36} onPress={() => setEdition(true)} />}>
+      {duJour.conseil ? <Txt variant="small" color="textSecondary">{duJour.conseil}</Txt> : null}
       {duJour.missions.map((m, i) => (
         <MissionCard key={i} m={m} rang={i} faite={duJour.faites.includes(i)} ouverte={ouverte === i} onOpen={() => setOuverte(ouverte === i ? null : i)} onToggle={() => basculer(i)} />
       ))}

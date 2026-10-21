@@ -44,7 +44,7 @@ export default function ContenuScreen() {
   };
 
   return (
-    <Screen back title={FORMATS[c.format].label}>
+    <Screen back title={c.titre}>
       <BoardingPass c={c} />
       {c.statut === 'idee' ? <PreparerBrief c={c} modifie={modifie} /> : null}
       {c.statut === 'verdict' && c.verdict ? <VerdictCard c={c} onModifier={() => modifie({ statut: 'publie' })} /> : null}

@@ -52,7 +52,7 @@ export function departs(state: AppState, jour: string, maintenant = new Date()):
       icon: 'lieu',
       quand: heure(t),
       titre: s.lieu,
-      statut: passee ? 'Tu y es allé ?' : l ? (l.type === 'golden' ? 'Golden hour' : 'Heure bleue') : 'Aujourd’hui',
+      statut: passee ? 'Sortie faite ?' : l ? (l.type === 'golden' ? 'Golden hour' : 'Heure bleue') : 'Aujourd’hui',
       couleur: passee ? 'danger' : l ? (l.type === 'golden' ? 'golden' : 'blue') : 'success',
       lien: '/sortir',
     });
