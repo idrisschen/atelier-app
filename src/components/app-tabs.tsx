@@ -1,4 +1,4 @@
-// iOS 26 : la barre native est en liquid glass d'office. Icônes seules, les libellés restent lus par VoiceOver.
+// iOS 26 : la barre native est en liquid glass d'office. Icône et libellé court sous chaque onglet.
 import { NativeTabs } from 'expo-router/native-tabs';
 
 import { useTheme } from '@/hooks/use-theme';
@@ -16,7 +16,7 @@ export default function AppTabs() {
     <NativeTabs tintColor={colors.accent} minimizeBehavior="onScrollDown">
       {ONGLETS.map((o) => (
         <NativeTabs.Trigger key={o.name} name={o.name}>
-          <NativeTabs.Trigger.Label hidden>{o.label}</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Label>{o.label}</NativeTabs.Trigger.Label>
           <NativeTabs.Trigger.Icon sf={o.sf} md={o.md} />
         </NativeTabs.Trigger>
       ))}
