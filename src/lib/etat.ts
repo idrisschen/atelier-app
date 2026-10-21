@@ -31,6 +31,9 @@ export function departs(state: AppState, jour: string, maintenant = new Date()):
   for (const c of state.contenus) {
     if (c.statut !== 'publie' || !c.publie) continue;
     const age = ecartJours(c.publie, jour);
+    // Au-delà d'une semaine, les chiffres ne bougent plus et la ligne ne ferait que culpabiliser : elle quitte l'accueil
+    // (le contenu reste dans « Mes contenus », prêt pour son verdict).
+    if (age > 7) continue;
     if (age >= 2) {
       lignes.push({ cle: c.id, rang: 0, icon: 'verdict', quand: 'Verdict', titre: c.titre, statut: 'À rendre', couleur: 'warning', lien: `/contenu/${c.id}` });
     } else {

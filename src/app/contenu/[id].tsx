@@ -1,9 +1,10 @@
 // Un contenu, du brief au verdict. Chaque étape débloque la suivante, comme un vol : on sait toujours où on en est.
+import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Platform, StyleSheet, View } from 'react-native';
 
-import { BoardingPass, couleurVerdict, iconeVerdict } from '@/components/boarding-pass';
+import { BoardingPass, couleurVerdict, etape, iconeVerdict } from '@/components/boarding-pass';
 import { Icon, type NomIcone } from '@/components/icon';
 import { Button, Card, Check, Divider, ErrorNote, Field, Num, Screen, Section, Txt, succes, tap } from '@/components/ui';
 import { Radius, Spacing } from '@/constants/theme';
@@ -11,6 +12,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { askAtelier } from '@/lib/ai';
 import { briefLocal, FORMATS } from '@/lib/brief';
 import { ecartJours, today } from '@/lib/dates';
+import { demanderRappels } from '@/lib/rappels';
 import { useStore } from '@/lib/store';
 import type { Brief, Contenu, Stats } from '@/lib/types';
 import { calculeVerdict, fois } from '@/lib/verdict';
@@ -44,7 +46,7 @@ export default function ContenuScreen() {
   };
 
   return (
-    <Screen back title={c.titre}>
+    <Screen back title={etape(c).label}>
       <BoardingPass c={c} />
       {c.statut === 'idee' ? <PreparerBrief c={c} modifie={modifie} /> : null}
       {c.statut === 'verdict' && c.verdict ? <VerdictCard c={c} onModifier={() => modifie({ statut: 'publie' })} /> : null}
@@ -55,9 +57,14 @@ export default function ContenuScreen() {
           <Button
             icon="publie"
             label="C’est publié"
-            onPress={() => {
+            onPress={async () => {
               succes();
               modifie({ statut: 'publie', publie: today() });
+              // Le bon moment pour demander les notifications : le créateur attend justement un verdict.
+              if (state.reglages.rappels === undefined && Platform.OS !== 'web') {
+                const rappels = await demanderRappels();
+                update((s) => ({ ...s, reglages: { ...s.reglages, rappels } }));
+              }
             }}
           />
           <BriefDetail brief={c.brief} />
@@ -181,7 +188,7 @@ const CHAMPS: { cle: keyof Stats; label: string; icon: NomIcone; requis?: boolea
   { cle: 'partages', label: 'Partages', icon: 'partages' },
   { cle: 'enregistrements', label: 'Enregistrements', icon: 'enregistrements' },
   { cle: 'abonnes', label: 'Abonnés', icon: 'abonnes' },
-  { cle: 'zap', label: 'Zap 3 s %', icon: 'zap' },
+  { cle: 'zap', label: 'Zappent avant 3 s (%)', icon: 'zap' },
 ];
 
 const nombre = (s: string) => {
@@ -196,6 +203,33 @@ function SaisieStats({ c, modifie }: { c: Contenu; modifie: (p: Partial<Contenu>
     Object.fromEntries(CHAMPS.map((f) => [f.cle, c.stats?.[f.cle] !== undefined ? String(c.stats[f.cle]) : ''])),
   );
   const [error, setError] = useState<string | null>(null);
+  // Mode rapide par défaut : les vues suffisent pour un premier verdict, le détail dit ce qui a coincé.
+  const [detail, setDetail] = useState(() => CHAMPS.some((f) => !f.requis && c.stats?.[f.cle]));
+  const [lecture, setLecture] = useState(false);
+
+  // L'IA lit une capture des statistiques du post et remplit les champs qu'elle voit.
+  const lireCapture = async () => {
+    if (!state.profile) return;
+    setError(null);
+    const choix = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], base64: true, quality: 0.6 });
+    if (choix.canceled || !choix.assets[0].base64) return;
+    setLecture(true);
+    try {
+      const { result } = await askAtelier<Record<string, number>>('stats', state.profile, {
+        image: choix.assets[0].base64,
+        image_type: choix.assets[0].mimeType ?? 'image/jpeg',
+        plateforme: c.plateforme,
+      });
+      const lus = Object.fromEntries(CHAMPS.filter((f) => typeof result[f.cle] === 'number' && result[f.cle] >= 0).map((f) => [f.cle, String(result[f.cle])]));
+      if (Object.keys(lus).length === 0) return setError('Aucun chiffre lisible sur cette capture.');
+      setVals((x) => ({ ...x, ...lus }));
+      setDetail(true);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setLecture(false);
+    }
+  };
 
   const rendre = () => {
     const stats = {} as Stats;
@@ -228,16 +262,18 @@ function SaisieStats({ c, modifie }: { c: Contenu; modifie: (p: Partial<Contenu>
       </View>
       <Txt variant="small" color="textSecondary">
         {age >= 2
-          ? 'Recopie les chiffres de l’app (statistiques du post). Le verdict compare ce contenu à ta médiane.'
+          ? 'Les vues suffisent pour un premier verdict. Ajoute le reste pour savoir ce qui a coincé.'
           : 'Les chiffres se stabilisent à 48 h. Tu peux noter les premiers dès maintenant.'}
       </Txt>
+      {state.reglages.ia ? <Button kind="secondary" icon="ia" label="Lire une capture des stats" onPress={lireCapture} loading={lecture} /> : null}
       <View style={styles.grille}>
-        {CHAMPS.map((f) => (
+        {CHAMPS.filter((f) => detail || f.requis).map((f) => (
           <View key={f.cle} style={styles.cellule}>
             <Field label={f.label} icon={f.icon} value={vals[f.cle]} onChangeText={(v) => setVals((x) => ({ ...x, [f.cle]: v }))} keyboardType="decimal-pad" placeholder={f.requis ? '0' : '—'} />
           </View>
         ))}
       </View>
+      {!detail ? <Button kind="ghost" icon="ajouter" label="Plus de chiffres" onPress={() => setDetail(true)} /> : null}
       <Button icon="verdict" label="Rendre le verdict" onPress={rendre} disabled={!vals.vues.trim()} />
       <ErrorNote message={error} />
     </Card>

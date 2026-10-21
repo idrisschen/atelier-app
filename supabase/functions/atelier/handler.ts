@@ -1,4 +1,4 @@
-// Atelier — passerelle IA de l'app iOS.
+// Rush (nom de code « atelier ») — passerelle IA de l'app iOS.
 // L'app n'a jamais la clé Claude : elle envoie { task, profile, input } ici, la fonction construit la consigne
 // à partir du profil du créateur et renvoie un JSON validé par schéma (structured outputs).
 //
@@ -11,6 +11,10 @@ import Anthropic from '@anthropic-ai/sdk';
 const MODEL = Deno.env.get('ATELIER_MODEL') ?? 'claude-opus-5-5';
 const MAX_INPUT = 4000; // caractères par champ texte
 const MAX_IMAGE = 5_000_000; // base64
+// Quota par adresse et par jour : sans compte, c'est le seul frein contre qui viderait la clé Claude avec l'URL.
+// Compteur en mémoire, donc par instance : un garde-fou, pas une facturation. Supabase Auth anonyme le remplacera.
+const QUOTA_JOUR = Number(Deno.env.get('ATELIER_QUOTA') ?? 40);
+const compteurs = new Map<string, number>();
 
 type Profile = {
   prenom: string;
@@ -22,7 +26,7 @@ type Profile = {
   regles?: string;
 };
 
-type Task = 'missions' | 'tournage' | 'accroche';
+type Task = 'missions' | 'tournage' | 'accroche' | 'stats';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -90,6 +94,14 @@ Tu cites les mots exacts et décris l'image exacte. Si une info manque (pas d'im
 Les réécritures gardent le sujet et le ton du créateur.
 
 ${STYLE}`,
+
+  stats: `Tu lis une capture d'écran des statistiques d'un post (Instagram, TikTok, YouTube…) et tu recopies les chiffres.
+
+Règles :
+- Recopie seulement ce qui est écrit sur la capture. Un chiffre absent ou illisible vaut -1, jamais une estimation.
+- « 1,2 k » ou « 1.2K » vaut 1200 ; « 3,4 M » vaut 3400000.
+- vues : vues ou lectures. portee : comptes touchés ou comptes atteints. likes : j'aime. abonnes : abonnés gagnés grâce à ce post.
+- zap : pourcentage de personnes qui quittent avant 3 secondes, seulement s'il est écrit tel quel (sinon -1).`,
 };
 
 // ---------- schémas de sortie ----------
@@ -133,6 +145,16 @@ const SCHEMA: Record<Task, Record<string, unknown>> = {
     texte_ecran: str,
     reecritures: { type: 'array', items: obj({ phrase: str, image: str }) },
   }),
+  stats: obj({
+    vues: { type: 'integer' },
+    portee: { type: 'integer' },
+    likes: { type: 'integer' },
+    commentaires: { type: 'integer' },
+    partages: { type: 'integer' },
+    enregistrements: { type: 'integer' },
+    abonnes: { type: 'integer' },
+    zap: { type: 'number' },
+  }),
 };
 
 // ---------- message utilisateur ----------
@@ -156,6 +178,12 @@ function userContent(task: Task, input: Record<string, unknown>): Anthropic.Beta
   }
   const blocks: Anthropic.Beta.BetaContentBlockParam[] = [];
   const image = typeof input.image === 'string' ? input.image : '';
+  if (task === 'stats') {
+    const media = (clip(input.image_type) || 'image/jpeg') as 'image/jpeg' | 'image/png' | 'image/webp';
+    blocks.push({ type: 'image', source: { type: 'base64', media_type: media, data: image } });
+    blocks.push({ type: 'text', text: `Plateforme : ${clip(input.plateforme) || 'non précisée'}.\nRecopie les statistiques de ce post.` });
+    return blocks;
+  }
   if (image && image.length <= MAX_IMAGE) {
     const media = (clip(input.image_type) || 'image/jpeg') as 'image/jpeg' | 'image/png' | 'image/webp';
     blocks.push({ type: 'image', source: { type: 'base64', media_type: media, data: image } });
@@ -213,6 +241,7 @@ const DEMO: Record<Task, unknown> = {
       { phrase: 'Tu fais sûrement cette erreur.', image: 'L\'erreur montrée en action.' },
     ],
   },
+  stats: { vues: 2400, portee: 1900, likes: 140, commentaires: 9, partages: 12, enregistrements: 21, abonnes: 6, zap: -1 },
 };
 
 // ---------- serveur ----------
@@ -243,9 +272,19 @@ export async function handler(req: Request): Promise<Response> {
   if (task === 'accroche' && !clip(input.phrase).trim() && !input.image && !clip(input.description).trim()) {
     return json({ error: 'Donne au moins la première phrase, une image ou une description' }, 400);
   }
+  if (task === 'stats' && (typeof input.image !== 'string' || !input.image || input.image.length > MAX_IMAGE)) {
+    return json({ error: 'Capture absente ou trop lourde' }, 400);
+  }
 
   const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
   if (!apiKey) return json({ demo: true, result: DEMO[task] });
+
+  const ip = (req.headers.get('cf-connecting-ip') ?? req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'inconnu').trim();
+  const cle = `${new Date().toISOString().slice(0, 10)}:${ip}`;
+  const deja = compteurs.get(cle) ?? 0;
+  if (deja >= QUOTA_JOUR) return json({ error: 'Quota du jour atteint pour l’assistant. Rush marche sans lui jusqu’à demain.' }, 429);
+  if (compteurs.size > 10_000) compteurs.clear(); // un nouveau jour, ou un abus : on repart de zéro
+  compteurs.set(cle, deja + 1);
 
   const client = new Anthropic({ apiKey });
   try {
@@ -255,7 +294,7 @@ export async function handler(req: Request): Promise<Response> {
       betas: ['server-side-fallback-2026-07-01'],
       fallbacks: 'default',
       thinking: { type: 'adaptive' },
-      output_config: { effort: task === 'missions' ? 'low' : 'medium', format: { type: 'json_schema', schema: SCHEMA[task] } },
+      output_config: { effort: task === 'missions' || task === 'stats' ? 'low' : 'medium', format: { type: 'json_schema', schema: SCHEMA[task] } },
       system: `${SYSTEM[task]}\n\n${portrait(body.profile)}`,
       messages: [{ role: 'user', content: userContent(task, input) }],
     } as Anthropic.Beta.MessageCreateParamsNonStreaming);

@@ -3,7 +3,8 @@ import { Platform } from 'react-native';
 
 import type { Position } from './types';
 
-// Une seule lecture, à la demande : la position ne sert qu'à calculer la lumière, elle reste sur le téléphone.
+// Une seule lecture, à la demande : la position sert à calculer la lumière et reste sur le téléphone,
+// sauf si le créateur active la météo (meteo.ts l'arrondit alors à ~10 km pour Open-Meteo).
 export async function lirePosition(): Promise<Position> {
   const { status } = await Location.requestForegroundPermissionsAsync();
   if (status !== 'granted') throw new Error('Position refusée. Tu peux l’activer dans les réglages de l’iPhone.');

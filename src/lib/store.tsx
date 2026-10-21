@@ -6,7 +6,9 @@ import type { AppState, Contenu, MissionsDuJour, Objectif, Profile, Brief } from
 // Tout vit sur le téléphone (pas de compte pour le MVP). Une clé par version du format, migration au chargement.
 const KEY = 'atelier:v2';
 const KEY_V1 = 'atelier:v1';
-const CONTENUS_MAX = 200;
+// Garde-fou de taille du stockage, pas une limite d'usage : à 3 publications par semaine, 6 ans d'historique.
+// Au-delà, les plus anciens partent (et la médiane avec) : l'export de sauvegarde les garde.
+const CONTENUS_MAX = 1000;
 
 const VIDE: AppState = {
   version: 2,

@@ -7,19 +7,17 @@ import { BoardingPass } from '@/components/boarding-pass';
 import { Glass } from '@/components/glass';
 import { Icon, type NomIcone } from '@/components/icon';
 import { ProchaineLumiere } from '@/components/lumiere';
-import { Rings } from '@/components/rings';
 import { CetteSemaine, MaListe } from '@/components/todo';
-import { Button, Card, Check, Divider, ErrorNote, Field, IconButton, Num, Screen, Section, Status, Txt, succes, tap } from '@/components/ui';
-import { Radius, Spacing, type ThemeColor } from '@/constants/theme';
+import { Button, Card, Check, Divider, ErrorNote, Field, IconButton, Screen, Section, Status, Txt, succes, tap } from '@/components/ui';
+import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { askAtelier } from '@/lib/ai';
-import { ajouteJours, debutSemaine, today } from '@/lib/dates';
+import { ajouteJours, today } from '@/lib/dates';
 import { departs } from '@/lib/etat';
 import { missionsLocales } from '@/lib/missions';
-import { avancement } from '@/lib/objectif';
 import { STICKERS } from '@/lib/options';
 import { useStore } from '@/lib/store';
-import type { AppState, Mission } from '@/lib/types';
+import type { Mission } from '@/lib/types';
 
 const dateLongue = () => new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
 const MOMENT_ICONE: NomIcone[] = ['matin', 'midi', 'soir'];
@@ -38,29 +36,30 @@ export default function Aujourdhui() {
 
       <Tableau />
 
-      <MaListe />
-
-      <CetteSemaine />
-
-      <Semaine state={state} jour={jour} />
+      <Missions />
 
       <ProchaineLumiere />
 
-      <Missions />
+      <CetteSemaine />
 
-      <Section titre="Prochain départ" icon="tournage" action={<IconButton icon="creer" label="Mes contenus" taille={36} onPress={() => router.push('/contenus')} />}>
-        {prochain ? (
-          <BoardingPass c={prochain} onPress={() => router.push(`/contenu/${prochain.id}`)} />
-        ) : (
-          <Card onPress={() => router.push('/contenu/nouveau')} label="Nouvelle idée">
-            <View style={styles.row}>
-              <Icon name="idee" size="lg" color="warning" />
-              <Txt variant="heading" style={{ flex: 1 }}>Une idée à tourner ?</Txt>
-              <Icon name="ajouter" size="md" color="accent" />
-            </View>
-          </Card>
-        )}
-      </Section>
+      <MaListe />
+
+      {/* Un tournage du jour est déjà dans « Maintenant » : pas de doublon. */}
+      {prochain?.tournage === jour ? null : (
+        <Section titre="Prochain départ" icon="tournage" action={<IconButton icon="creer" label="Mes contenus" taille={36} onPress={() => router.push('/contenus')} />}>
+          {prochain ? (
+            <BoardingPass c={prochain} onPress={() => router.push(`/contenu/${prochain.id}`)} />
+          ) : (
+            <Card onPress={() => router.push('/contenu/nouveau')} label="Nouvelle idée">
+              <View style={styles.row}>
+                <Icon name="idee" size="lg" color="warning" />
+                <Txt variant="heading" style={{ flex: 1 }}>Une idée à tourner ?</Txt>
+                <Icon name="ajouter" size="md" color="accent" />
+              </View>
+            </Card>
+          )}
+        </Section>
+      )}
     </Screen>
   );
 }
@@ -103,37 +102,6 @@ function Tableau() {
         )}
       </Card>
     </Section>
-  );
-}
-
-// ---------- la semaine en anneaux ----------
-
-function Semaine({ state, jour }: { state: AppState; jour: string }) {
-  const theme = useTheme();
-  const lundi = debutSemaine(jour);
-  const publies = state.contenus.filter((c) => c.publie && c.publie >= lundi).length;
-  const quota = state.reglages.quotaSemaine;
-  const m = state.missions[jour];
-  const obj = state.objectif ? avancement(state.objectif) : null;
-
-  const lignes: { label: string; icon: NomIcone; couleur: ThemeColor; valeur: string; v: number }[] = [
-    { label: 'Publications de la semaine', icon: 'publie', couleur: 'success', valeur: `${publies}/${quota}`, v: publies / quota },
-    { label: 'Stories du jour', icon: 'questions', couleur: 'accent', valeur: m ? `${m.faites.length}/${m.missions.length}` : '–', v: m ? m.faites.length / Math.max(1, m.missions.length) : 0 },
-    { label: 'Objectif', icon: 'objectif', couleur: 'golden', valeur: obj ? `${Math.round(obj.pct * 100)}%` : '–', v: obj?.pct ?? 0 },
-  ];
-
-  return (
-    <Card onPress={() => router.navigate('/bilan')} label="Ta semaine" style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.four }}>
-      <Rings anneaux={lignes.map((l) => ({ valeur: l.v, couleur: theme[l.couleur] }))} taille={124} epaisseur={13} />
-      <View style={{ flex: 1, gap: Spacing.three }}>
-        {lignes.map((l) => (
-          <View key={l.label} style={styles.row} accessibilityLabel={`${l.label} : ${l.valeur}`}>
-            <Icon name={l.icon} size="md" color={l.couleur} />
-            <Num size={26}>{l.valeur}</Num>
-          </View>
-        ))}
-      </View>
-    </Card>
   );
 }
 

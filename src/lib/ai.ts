@@ -5,7 +5,7 @@ import type { Profile } from './types';
 const URL = process.env.EXPO_PUBLIC_AI_URL ?? 'http://localhost:8000';
 const ANON = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
-export type AiTask = 'missions' | 'tournage' | 'accroche';
+export type AiTask = 'missions' | 'tournage' | 'accroche' | 'stats';
 
 export class AiError extends Error {}
 

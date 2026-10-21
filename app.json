@@ -17,7 +17,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#07090C",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -42,10 +42,18 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Rush utilise ta position pour calculer la golden hour près de toi. Elle ne quitte pas ton téléphone."
+          "locationWhenInUsePermission": "Rush utilise ta position pour calculer la golden hour près de toi. Elle reste sur ton téléphone, sauf si tu actives la météo (arrondie à ~10 km)."
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Rush lit la capture des statistiques que tu choisis pour remplir le verdict à ta place.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

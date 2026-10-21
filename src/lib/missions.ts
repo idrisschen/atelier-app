@@ -119,7 +119,7 @@ const PARTAGE: Format = {
     titre: 'Partage ta dernière vidéo',
     quoi: `Repartage « ${publieRecemment} » en story, juste après l’avoir postée.`,
     texte_ecran: '',
-    sticker: { type: 'sondage', question: 'La suite ?', reponses: ['Oui, vite', 'Évidemment'] },
+    sticker: { type: 'curseur', question: 'Elle vaut combien ? 🔥', reponses: [] },
     pourquoi: 'Tes abonnés les plus fidèles voient tes stories avant ton post : ils lancent ses premières vues.',
   }),
 };

@@ -54,7 +54,7 @@ export default function Bienvenue() {
               <Txt style={styles.hero}>Sors créer.{'\n'}On te dit la vérité après.</Txt>
               <View style={{ gap: Spacing.three }}>
                 <Point icon="objectif" couleur="golden" titre="Un cap et un rythme" texte="Un objectif clair et ton quota de publications de la semaine." />
-                <Point icon="questions" couleur="accent" titre="Ta mission du jour" texte="2 ou 3 stories qui font réagir, en 30 secondes chacune." />
+                <Point icon="questions" couleur="accent" titre="Ta mission du jour" texte="1 à 3 stories qui font réagir selon la taille de ton compte, 30 secondes chacune." />
                 <Point icon="golden" couleur="golden" titre="Sortir et tourner" texte="La belle lumière près de toi, un brief prêt avant de filmer." />
                 <Point icon="verdict" couleur="success" titre="Le verdict, franc" texte="À 48 h, comparé à ta médiane, défaut principal d’abord." />
               </View>

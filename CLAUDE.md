@@ -16,7 +16,7 @@ App iOS (Expo / React Native) pour créateurs de contenu : « le coach qui te fa
 ## Arborescence
 
 - `src/app/`: les routes uniquement. Les onglets sont dans `(tabs)/` (`index` = Aujourd'hui, `sortir`, `bilan`, `creer`). Les modales sont déclarées dans `_layout.tsx` et l'onboarding est `bienvenue.tsx`, protégé par `Stack.Protected` selon `state.profile`.
-- `src/lib/`: la logique métier, locale et pure. `missions.ts` (stories du jour), `brief.ts`, `verdict.ts` (verdict à 48 h contre la médiane du créateur), `soleil.ts` (golden hour et heure bleue), `objectif.ts`, `bilan.ts`. Les types sont dans `types.ts`, les listes de référence dans `options.ts`.
+- `src/lib/`: la logique métier, locale et pure. `missions.ts` (stories du jour), `brief.ts`, `verdict.ts` (verdict à 48 h contre la médiane du créateur), `soleil.ts` (golden hour et heure bleue), `objectif.ts`, `bilan.ts`, `rappels.ts` (notifications locales), `sauvegarde.ts` (export/import JSON), `meteo.ts` (Open-Meteo, en option). Les types sont dans `types.ts`, les listes de référence dans `options.ts`.
 - `src/components/`: `ui.tsx` (primitives `Screen`, `Txt`, `Num`, `Card`, `Button`, `Chip`, `Status`, `Field`…), `glass.tsx`, `ambient.tsx`, `icon.tsx` (table `ICONES`) et `boarding-pass.tsx`.
 - `src/constants/theme.ts`: la seule source des couleurs, espacements et rayons.
 
@@ -27,7 +27,8 @@ App iOS (Expo / React Native) pour créateurs de contenu : « le coach qui te fa
 - **Design** : respectez `DESIGN.md`. Passez par les primitives de `ui.tsx` et les jetons de `theme.ts`, jamais de valeur en dur dans un écran. Les couleurs de statut ne servent qu'aux états.
 - **Accessibilité** : `accessibilityLabel` sur tout bouton à icône seule, cibles tactiles de 44 au minimum, prise en compte de `useReducedMotion` pour les animations.
 - **Changement du format stocké** : incrémentez la version et ajoutez une migration dans `store.tsx`. Ne cassez jamais les données d'un utilisateur existant.
-- **Position** : elle ne sert qu'au calcul de la lumière et ne quitte pas le téléphone.
+- **Position** : elle ne sert qu'au calcul de la lumière. Elle ne quitte le téléphone que si la météo est activée, arrondie à ~10 km (`meteo.ts`).
+- **Rappels** : tout passe par `rappels.ts`, replanifié depuis `_layout.tsx` à chaque changement d'état. Rien sur le web.
 
 ## Avant de rendre
 
@@ -44,4 +45,4 @@ On ne pousse jamais sur `main` : une branche `feat/…`, `fix/…` ou `copy/…`
 
 ## Dette connue avant l'App Store
 
-La fonction IA n'a pas de quota par utilisateur : quiconque a l'URL et la clé anon peut consommer la clé Claude. Il faut prévoir Supabase Auth anonyme et un compteur quotidien. Il manque aussi la politique de confidentialité, l'icône et le splash définitifs (ceux du template Expo sont encore dans `assets/`), et l'abonnement.
+La fonction IA n'a qu'un quota par adresse IP, en mémoire (`ATELIER_QUOTA`) : il faut Supabase Auth anonyme et un compteur persistant. Il manque aussi la politique de confidentialité et l'abonnement. L'icône actuelle (soleil strié sur l'horizon) est provisoire, comme le nom.

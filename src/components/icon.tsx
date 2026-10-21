@@ -48,6 +48,8 @@ export const ICONES = {
   soir: I('sunset.fill', 'bedtime'),
   bleue: I('moon.stars.fill', 'nightlight'),
   golden: I('sun.horizon.fill', 'wb_twilight'),
+  eclaircie: I('cloud.sun.fill', 'partly_cloudy_day'),
+  nuage: I('cloud.fill', 'cloud'),
   lieu: I('mappin.and.ellipse', 'place'),
   heure: I('clock.fill', 'schedule'),
   date: I('calendar', 'today'),

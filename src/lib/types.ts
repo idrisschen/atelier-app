@@ -12,6 +12,8 @@ export type Reglages = {
   ia: boolean; // assistant IA (option, désactivé par défaut : tout marche sans)
   quotaSemaine: number; // publications visées par semaine
   cases?: CaseSemaine[]; // « Cette semaine » : les publications à tenir, par type (absent = valeurs par défaut)
+  rappels?: boolean; // notifications locales (absent = jamais demandé)
+  meteo?: boolean; // couverture nuageuse via Open-Meteo (option : la position arrondie quitte alors le téléphone)
 };
 
 // ---------- la todo ----------

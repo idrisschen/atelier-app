@@ -68,5 +68,17 @@ export const Radius = {
   pill: 999,
 } as const;
 
+// Cartes du Bilan : ce sont des images à poster en story, pas de l'interface. Un dégradé par thème :
+// c'est la seule exception à la règle « couleurs réservées aux statuts ».
+export const CartesBilan = {
+  blanc: '#FFFFFF',
+  blancDoux: 'rgba(255,255,255,0.72)',
+  bilan: { de: '#16124A', vers: '#1D4AA8' },
+  serie: { de: '#B23A1E', vers: '#5A1410', accent: '#FFB4A2' },
+  objectif: { de: '#8A5A0B', vers: '#3A2205', accent: '#F8D79B' },
+  objectifVide: { de: '#7A4A08', vers: '#3A2205' },
+  meilleur: { de: '#F1EEFF', vers: '#C9C3F2', encre: '#1B1A3A', encreDouce: 'rgba(27,26,58,0.62)' },
+} as const;
+
 export const BottomTabInset = Platform.select({ ios: 50, android: 80, web: 72 }) ?? 0;
 export const MaxContentWidth = 640;

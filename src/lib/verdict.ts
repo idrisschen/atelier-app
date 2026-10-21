@@ -48,7 +48,12 @@ export function calculeVerdict(stats: Stats, precedents: Contenu[]): Verdict {
   // Le défaut principal d'abord : le premier qui s'applique, dans l'ordre où la vidéo est vue.
   let defaut: string;
   const actions: string[] = [];
-  if (stats.zap !== undefined && stats.zap >= 50) {
+  const vuesSeules = stats.zap === undefined && !stats.portee && stats.likes + stats.commentaires + stats.partages + stats.enregistrements + stats.abonnes === 0;
+  if (vuesSeules) {
+    // Verdict rapide : sans le détail, on ne prétend pas savoir où ça a coincé.
+    defaut = 'Verdict sur les vues seules : on sait si ça a marché, pas encore pourquoi.';
+    actions.push(niveau === 'haut' ? 'Refais ce format dans la semaine, avec un autre sujet.' : 'Note j’aime, partages et abonnés : ils diront où ça a décroché.');
+  } else if (stats.zap !== undefined && stats.zap >= 50) {
     defaut = `${Math.round(stats.zap)} % zappent dans les 3 premières secondes : l’accroche ne tient pas.`;
     actions.push('Ouvre sur le moment le plus fort, pas sur l’installation.', 'Première phrase : une promesse ou une contradiction, jamais « Bon les gars ».');
   } else if (ecartPartages !== null && ecartPartages <= -0.3) {

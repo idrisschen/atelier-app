@@ -95,6 +95,8 @@ Rush est le coach qui fait sortir le créateur tourner, puis lui dit la vérité
 - `accent` sert aux actions : bouton principal, onglet actif, curseur de saisie, halo de fond par défaut.
 - `golden` et `blue` désignent la golden hour et l'heure bleue.
 - Toute couleur vient de la palette du thème via `useTheme()`. Un écran ne contient aucune valeur de couleur en dur.
+- Seule exception : les cartes du Bilan, qui sont des images à poster en story. Elles ont chacune leur dégradé, déclaré dans `CartesBilan` (`theme.ts`), et ne servent pas d'interface.
+- Une carte du Bilan sans donnée ne propose pas de partage.
 
 ## Typography
 

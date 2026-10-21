@@ -3,10 +3,12 @@ import { useState } from 'react';
 import { Alert, Platform, Switch, View } from 'react-native';
 
 import { Icon } from '@/components/icon';
-import { Button, Card, Chip, Field, Groupe, Screen, Txt } from '@/components/ui';
+import { Button, Card, Chip, ErrorNote, Field, Groupe, Screen, Txt } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { OBJECTIFS, PLATEFORMES } from '@/lib/options';
+import { demanderRappels } from '@/lib/rappels';
+import { exporter, lireSauvegarde } from '@/lib/sauvegarde';
 import { useStore } from '@/lib/store';
 import type { Profile } from '@/lib/types';
 
@@ -15,6 +17,40 @@ export default function Reglages() {
   const { state, update, reset } = useStore();
   const [p, setP] = useState<Profile>(state.profile!);
   const set = (patch: Partial<Profile>) => setP((x) => ({ ...x, ...patch }));
+  const [erreur, setErreur] = useState<string | null>(null);
+
+  const basculerRappels = async (rappels: boolean) => {
+    const ok = rappels ? await demanderRappels() : false;
+    if (rappels && !ok) setErreur('Notifications refusées : active-les pour Rush dans les réglages de l’iPhone.');
+    update((s) => ({ ...s, reglages: { ...s.reglages, rappels: ok } }));
+  };
+
+  const sauvegarder = () => {
+    setErreur(null);
+    exporter(state).catch((e) => {
+      console.error('export', e);
+      setErreur('Impossible de créer la sauvegarde.');
+    });
+  };
+
+  const restaurer = async () => {
+    setErreur(null);
+    try {
+      const data = await lireSauvegarde();
+      if (!data) return;
+      const go = () => {
+        update((s) => ({ ...s, ...data }));
+        router.back();
+      };
+      if (Platform.OS === 'web') return go();
+      Alert.alert('Remplacer tes données ?', 'Tout ce qui est sur ce téléphone sera remplacé par la sauvegarde.', [
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Remplacer', style: 'destructive', onPress: go },
+      ]);
+    } catch (e) {
+      setErreur((e as Error).message);
+    }
+  };
 
   const enregistrer = () => {
     update((s) => ({ ...s, profile: p }));
@@ -72,14 +108,35 @@ export default function Reglages() {
         </View>
       </Card>
 
+      {Platform.OS !== 'web' ? (
+        <Card>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.three }}>
+            <Icon name="heure" size="lg" color="golden" />
+            <View style={{ flex: 1, gap: 2 }}>
+              <Txt variant="heading">Rappels</Txt>
+              <Txt variant="small" color="textSecondary">L’heure du verdict, tes sorties et la golden hour du soir, 30 minutes avant.</Txt>
+            </View>
+            <Switch
+              accessibilityLabel="Rappels"
+              value={!!state.reglages.rappels}
+              onValueChange={basculerRappels}
+              trackColor={{ true: theme.accent, false: theme.backgroundSelected }}
+            />
+          </View>
+        </Card>
+      ) : null}
+
       <Card>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.three }}>
           <Icon name="profil" size="lg" color="textSecondary" />
           <Txt variant="heading">Tes données</Txt>
         </View>
         <Txt variant="small" color="textSecondary">
-          Tout reste sur ce téléphone. Si l&apos;assistant IA est activé, ton profil (prénom, niche, audience, ton, règles) et ta demande partent vers Claude (Anthropic), le temps de la réponse.
+          Tout reste sur ce téléphone : supprimer l&apos;app efface tout. Exporte une sauvegarde de temps en temps. Si tu actives la météo, ta position arrondie à ~10 km part vers Open-Meteo. Si l&apos;assistant IA est activé, ton profil (prénom, niche, audience, ton, règles) et ta demande partent vers Claude (Anthropic), le temps de la réponse.
         </Txt>
+        <Button kind="secondary" icon="partager" label="Exporter une sauvegarde" onPress={sauvegarder} />
+        <Button kind="secondary" icon="refaire" label="Importer une sauvegarde" onPress={restaurer} />
+        <ErrorNote message={erreur} />
         <Button kind="danger" icon="supprimer" label="Tout effacer" onPress={effacer} />
       </Card>
     </Screen>

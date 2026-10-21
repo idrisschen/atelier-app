@@ -7,16 +7,17 @@ import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
 import { Icon } from '@/components/icon';
 import { ErrorNote, tap } from '@/components/ui';
-import { Radius, Spacing } from '@/constants/theme';
+import { CartesBilan, Radius, Spacing } from '@/constants/theme';
 import { partageImage } from '@/lib/partage';
 
 export function CarteBilan({
   de,
   vers,
-  encre = '#FFFFFF',
+  encre = CartesBilan.blanc,
   nom,
   children,
   lien,
+  partageable = true,
 }: {
   de: string;
   vers: string;
@@ -24,6 +25,7 @@ export function CarteBilan({
   nom: string; // nom du fichier image partagé
   children: ReactNode;
   lien?: { label: string; onPress: () => void };
+  partageable?: boolean; // pas de bouton de partage sur une carte vide : personne ne poste ses zéros
 }) {
   const capture = useRef<HostInstance>(null);
   const [erreur, setErreur] = useState<string | null>(null);
@@ -54,20 +56,22 @@ export function CarteBilan({
         </Svg>
         <View style={styles.contenu}>{children}</View>
       </View>
-      <View style={styles.partage}>
-        {/* Pas de verre ici : sur le web, le flou d'arrière-plan déborde en carré sur le dégradé. */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Partager en image"
-          hitSlop={8}
-          onPress={() => {
-            tap();
-            partager();
-          }}
-          style={({ pressed }) => [styles.bouton, pressed && { opacity: 0.6 }]}>
-          <Icon name="partager" size={18} color="text" />
-        </Pressable>
-      </View>
+      {partageable ? (
+        <View style={styles.partage}>
+          {/* Pas de verre ici : sur le web, le flou d'arrière-plan déborde en carré sur le dégradé. */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Partager en image"
+            hitSlop={8}
+            onPress={() => {
+              tap();
+              partager();
+            }}
+            style={({ pressed }) => [styles.bouton, pressed && { opacity: 0.6 }]}>
+            <Icon name="partager" size={18} color="text" />
+          </Pressable>
+        </View>
+      ) : null}
       {lien || erreur ? (
         <View style={styles.bas}>
           <ErrorNote message={erreur} />
@@ -81,7 +85,7 @@ export function CarteBilan({
               }}
               style={({ pressed }) => [styles.lien, { borderColor: `${encre}33`, backgroundColor: `${encre}14` }, pressed && { opacity: 0.7 }]}>
               <Text style={[styles.lienTexte, { color: encre }]}>{lien.label}</Text>
-              <Icon name="suite" size="md" color={encre === '#FFFFFF' ? 'text' : 'background'} />
+              <Icon name="suite" size="md" color={encre === CartesBilan.blanc ? 'text' : 'background'} />
             </Pressable>
           ) : null}
         </View>
