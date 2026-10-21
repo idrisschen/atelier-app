@@ -27,6 +27,8 @@ function Routes() {
         <Stack.Protected guard={!!state.profile}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="contenu/[id]" />
+          <Stack.Screen name="contenus" />
+          <Stack.Screen name="objectif" options={{ presentation: 'modal' }} />
           <Stack.Screen name="contenu/nouveau" options={{ presentation: 'modal' }} />
           <Stack.Screen name="sortie/nouvelle" options={{ presentation: 'modal' }} />
           <Stack.Screen name="reglages" options={{ presentation: 'modal' }} />

@@ -1,45 +1,91 @@
-// Créer : toutes les cartes d'embarquement, de l'idée au verdict.
-import { router } from 'expo-router';
-import { useState } from 'react';
-import { View } from 'react-native';
+// Le + (l'« Add Flight » de Flighty) : tout ce qu'on peut lancer, puis des suggestions tirées de ce qui est en cours.
+import { router, type Href } from 'expo-router';
+import { Pressable, StyleSheet, View } from 'react-native';
 
-import { BoardingPass } from '@/components/boarding-pass';
 import { Icon, type NomIcone } from '@/components/icon';
-import { Card, Chip, IconButton, Screen, Txt } from '@/components/ui';
-import { Spacing } from '@/constants/theme';
+import { Screen, Txt, tap } from '@/components/ui';
+import { Spacing, type ThemeColor } from '@/constants/theme';
+import { today } from '@/lib/dates';
+import { ETAPES, IDEES_SORTIE } from '@/lib/options';
 import { useStore } from '@/lib/store';
-import type { Statut } from '@/lib/types';
 
-const FILTRES: { label: string; icon: NomIcone; statuts: Statut[] }[] = [
-  { label: 'En cours', icon: 'tournage', statuts: ['idee', 'brief', 'tournage'] },
-  { label: 'Publiés', icon: 'publie', statuts: ['publie', 'verdict'] },
-];
+type Entree = { icon: NomIcone; couleur?: ThemeColor; titre: string; detail?: string; href: Href };
 
 export default function Creer() {
   const { state } = useStore();
-  const [filtre, setFiltre] = useState(0);
-  const liste = state.contenus.filter((c) => FILTRES[filtre].statuts.includes(c.statut));
+  const jour = today();
+  const enCours = state.contenus.filter((c) => c.statut === 'idee' || c.statut === 'brief' || c.statut === 'tournage');
+  const publies = state.contenus.length - enCours.length;
+  const stories = state.missions[jour];
+
+  const suggestions: Entree[] = [
+    ...(stories && stories.faites.length < stories.missions.length
+      ? [{ icon: 'questions', couleur: 'accent', titre: 'Stories du jour', detail: `${stories.faites.length}/${stories.missions.length} postées`, href: '/' } as Entree]
+      : []),
+    ...enCours.slice(0, 2).map(
+      (c): Entree => ({ icon: c.statut, couleur: ETAPES.find((e) => e.id === c.statut)!.theme, titre: c.titre, detail: `Reprendre · ${ETAPES.find((e) => e.id === c.statut)!.label}`, href: `/contenu/${c.id}` }),
+    ),
+    ...IDEES_SORTIE.slice(0, 2).map(
+      (i): Entree => ({ icon: 'lieu', couleur: 'golden', titre: i.titre, detail: 'Idée de sortie', href: { pathname: '/sortie/nouvelle', params: { lieu: i.titre } } }),
+    ),
+  ];
 
   return (
-    <Screen title="Créer" right={<IconButton icon="ajouter" label="Nouvelle idée" color="accent" onPress={() => router.push('/contenu/nouveau')} />}>
-      <View style={{ flexDirection: 'row', gap: Spacing.two }}>
-        {FILTRES.map((f, i) => (
-          <Chip key={f.label} icon={f.icon} label={`${f.label} · ${state.contenus.filter((c) => f.statuts.includes(c.statut)).length}`} selected={filtre === i} onPress={() => setFiltre(i)} />
+    <Screen title="Créer">
+      <Txt color="textSecondary" style={{ marginTop: -Spacing.three, fontSize: 18 }}>Une idée, une sortie, une story.</Txt>
+
+      <View>
+        <Ligne icon="idee" couleur="warning" titre="Nouvelle idée" detail="Brief, tournage, puis le verdict." href="/contenu/nouveau" />
+        <Ligne icon="lieu" couleur="golden" titre="Planifier une sortie" detail="Le lieu, l’heure, la lumière." href="/sortie/nouvelle" />
+      </View>
+
+      <Rubrique titre="Suggéré" />
+      <View>
+        {suggestions.map((s) => (
+          <Ligne key={s.titre} {...s} />
         ))}
       </View>
-      {liste.length === 0 ? (
-        <Card onPress={filtre === 0 ? () => router.push('/contenu/nouveau') : undefined} label="Nouvelle idée">
-          <Icon name={filtre === 0 ? 'idee' : 'publie'} size="xl" color={filtre === 0 ? 'warning' : 'success'} />
-          <Txt variant="heading">{filtre === 0 ? 'Rien en préparation' : 'Rien de publié pour l’instant'}</Txt>
-          <Txt variant="small" color="textSecondary">
-            {filtre === 0
-              ? 'Chaque idée devient une carte : brief, tournage, publication, puis le verdict à 48 h.'
-              : 'Quand tu publies un contenu, il arrive ici et attend son verdict.'}
-          </Txt>
-        </Card>
-      ) : (
-        liste.map((c) => <BoardingPass key={c.id} c={c} onPress={() => router.push(`/contenu/${c.id}`)} />)
-      )}
+
+      <Rubrique titre="Plus" />
+      <View>
+        <Ligne icon="creer" titre="Mes contenus" detail={`${enCours.length} en cours · ${publies} publié${publies > 1 ? 's' : ''}`} href="/contenus" />
+        <Ligne icon="objectif" titre="Mon objectif" detail={state.objectif ? `${state.objectif.cible.toLocaleString('fr-FR')} sur ${state.objectif.plateforme}` : 'Pas encore fixé'} href="/objectif" />
+      </View>
     </Screen>
   );
 }
+
+function Rubrique({ titre }: { titre: string }) {
+  return (
+    <Txt variant="label" style={styles.rubrique}>
+      {titre}
+    </Txt>
+  );
+}
+
+function Ligne({ icon, couleur = 'text', titre, detail, href }: Entree) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={detail ? `${titre}, ${detail}` : titre}
+      onPress={() => {
+        tap();
+        router.push(href);
+      }}
+      style={({ pressed }) => [styles.ligne, pressed && { opacity: 0.6 }]}>
+      <View style={styles.icone}>
+        <Icon name={icon} size="xl" color={couleur} />
+      </View>
+      <View style={{ flex: 1, gap: 2 }}>
+        <Txt style={{ fontSize: 19, fontWeight: '500' }} numberOfLines={1}>{titre}</Txt>
+        {detail ? <Txt color="textSecondary" numberOfLines={1}>{detail}</Txt> : null}
+      </View>
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  rubrique: { marginTop: Spacing.three, fontSize: 14, letterSpacing: 1, textTransform: 'uppercase' },
+  ligne: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, minHeight: 64, paddingVertical: Spacing.two },
+  icone: { width: 40, alignItems: 'center' },
+});

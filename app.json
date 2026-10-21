@@ -44,7 +44,8 @@
         {
           "locationWhenInUsePermission": "L'Atelier utilise ta position pour calculer la golden hour près de toi. Elle ne quitte pas ton téléphone."
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -1,4 +1,4 @@
-// Version web (aperçu navigateur) : capsule de verre flottante en bas, icônes seules, comme la barre iOS 26.
+// Version web (aperçu navigateur) : capsule de verre à trois onglets et le + à part dans son rond, comme la barre iOS 26.
 import { Tabs, TabList, TabTrigger, TabSlot, type TabTriggerSlotProps, type TabListProps } from 'expo-router/ui';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -7,11 +7,10 @@ import { Icon, type NomIcone } from '@/components/icon';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-const ONGLETS: { name: string; href: '/' | '/creer' | '/sortir' | '/objectif'; label: string; icon: NomIcone }[] = [
+const ONGLETS: { name: string; href: '/' | '/sortir' | '/bilan'; label: string; icon: NomIcone }[] = [
   { name: 'index', href: '/', label: 'Aujourd’hui', icon: 'aujourdhui' },
-  { name: 'creer', href: '/creer', label: 'Créer', icon: 'creer' },
   { name: 'sortir', href: '/sortir', label: 'Sortir', icon: 'sortir' },
-  { name: 'objectif', href: '/objectif', label: 'Objectif', icon: 'objectif' },
+  { name: 'bilan', href: '/bilan', label: 'Bilan', icon: 'bilan' },
 ];
 
 export default function AppTabs() {
@@ -25,6 +24,9 @@ export default function AppTabs() {
               <TabButton icon={o.icon} label={o.label} />
             </TabTrigger>
           ))}
+          <TabTrigger name="creer" href="/creer" asChild>
+            <Plus />
+          </TabTrigger>
         </Bar>
       </TabList>
     </Tabs>
@@ -45,24 +47,41 @@ function TabButton({ isFocused, icon, label, ref: _ref, ...props }: TabTriggerSl
   );
 }
 
-function Bar(props: TabListProps) {
+function Plus({ isFocused, ref: _ref, ...props }: TabTriggerSlotProps) {
+  return (
+    <Pressable {...props} accessibilityRole="tab" accessibilityLabel="Créer" accessibilityState={{ selected: !!isFocused }} style={({ pressed }) => [styles.plus, pressed && { transform: [{ scale: 0.92 }] }]}>
+      <Glass radius={33} intensite={60} style={[styles.rond, isFocused && styles.active]}>
+        <Icon name="ajouter" size={26} color={isFocused ? 'accent' : 'text'} />
+      </Glass>
+    </Pressable>
+  );
+}
+
+// Le dernier enfant (le +) sort de la capsule : il a son propre rond, à côté.
+function Bar({ children, ...props }: TabListProps) {
+  const enfants = Array.isArray(children) ? children.flat() : [children];
+  const plus = enfants.pop();
   return (
     <View style={styles.zone} pointerEvents="box-none">
-      <Glass radius={Radius.pill} intensite={60} style={styles.bar}>
-        <View {...props} style={styles.rangee}>
-          {props.children}
-        </View>
-      </Glass>
+      <View {...props} style={styles.ligne}>
+        <Glass radius={Radius.pill} intensite={60} style={styles.bar}>
+          <View style={styles.rangee}>{enfants}</View>
+        </Glass>
+        {plus}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   zone: { position: 'absolute', bottom: Spacing.three, left: 0, right: 0, alignItems: 'center' },
+  ligne: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
+  plus: { width: 66, height: 66 },
+  rond: { width: 66, height: 66, alignItems: 'center', justifyContent: 'center' },
   bar: { padding: 6 },
   rangee: { flexDirection: 'row', gap: 4 },
-  button: { width: 76, height: 54, alignItems: 'center', justifyContent: 'center' },
-  pastille: { width: 72, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', gap: 2 },
+  button: { width: 84, height: 54, alignItems: 'center', justifyContent: 'center' },
+  pastille: { width: 80, height: 50, borderRadius: 25, alignItems: 'center', justifyContent: 'center', gap: 2 },
   label: { fontSize: 10, fontWeight: '600' },
   active: { backgroundColor: 'rgba(91,140,255,0.18)' },
 });

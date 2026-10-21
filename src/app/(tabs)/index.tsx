@@ -56,7 +56,7 @@ export default function Aujourdhui() {
 
       <Missions />
 
-      <Section titre="Prochain départ" icon="tournage" action={<IconButton icon="ajouter" label="Nouvelle idée" taille={36} onPress={() => router.push('/contenu/nouveau')} />}>
+      <Section titre="Prochain départ" icon="tournage" action={<IconButton icon="creer" label="Mes contenus" taille={36} onPress={() => router.push('/contenus')} />}>
         {prochain ? (
           <BoardingPass c={prochain} onPress={() => router.push(`/contenu/${prochain.id}`)} />
         ) : (
@@ -90,7 +90,7 @@ function Semaine({ state, jour }: { state: AppState; jour: string }) {
   ];
 
   return (
-    <Card onPress={() => router.navigate('/objectif')} label="Ta semaine" style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.four }}>
+    <Card onPress={() => router.navigate('/bilan')} label="Ta semaine" style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.four }}>
       <Rings anneaux={lignes.map((l) => ({ valeur: l.v, couleur: theme[l.couleur] }))} taille={124} epaisseur={13} />
       <View style={{ flex: 1, gap: Spacing.three }}>
         {lignes.map((l) => (

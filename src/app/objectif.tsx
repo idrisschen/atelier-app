@@ -1,10 +1,11 @@
-// Objectif : un chiffre à faire monter, le rythme qu'il faut tenir, et le quota de publications de la semaine.
+// Objectif (ouvert depuis le Bilan) : un chiffre à faire monter, le rythme qu'il faut tenir, et le quota de publications de la semaine.
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { Barre } from '@/components/barre';
 import { Icon } from '@/components/icon';
-import { Button, Card, Chip, ErrorNote, Field, Groupe, Num, Screen, Section, Txt } from '@/components/ui';
+import { Button, Card, Chip, ErrorNote, Field, Groupe, IconButton, Num, Screen, Section, Txt } from '@/components/ui';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { avancement, nombre } from '@/lib/objectif';
@@ -27,7 +28,7 @@ export default function ObjectifScreen() {
   const { state } = useStore();
   const [edition, setEdition] = useState(false);
   return (
-    <Screen title="Objectif">
+    <Screen title="Objectif" right={<IconButton icon="fermer" label="Fermer" onPress={() => (router.canGoBack() ? router.back() : router.replace('/bilan'))} />}>
       {!state.objectif || edition ? <Formulaire onDone={() => setEdition(false)} /> : <Suivi onChanger={() => setEdition(true)} />}
       <Rythme />
     </Screen>
