@@ -26,6 +26,8 @@ export const ICONES = {
   refaire: I('arrow.clockwise', 'refresh'),
   supprimer: I('trash', 'delete'),
   editer: I('pencil', 'edit'),
+  monter: I('arrow.up', 'arrow_upward'),
+  liste: I('checklist', 'checklist'),
   // étapes d'un contenu
   idee: I('lightbulb.fill', 'lightbulb'),
   brief: I('doc.text.fill', 'description'),

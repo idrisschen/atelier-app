@@ -11,7 +11,15 @@ export type Profile = {
 export type Reglages = {
   ia: boolean; // assistant IA (option, désactivé par défaut : tout marche sans)
   quotaSemaine: number; // publications visées par semaine
+  cases?: CaseSemaine[]; // « Cette semaine » : les publications à tenir, par type (absent = valeurs par défaut)
 };
+
+// ---------- la todo ----------
+
+export type Tache = { id: string; texte: string; faite: boolean; cree: string };
+
+// Une case de la semaine : un libellé, et un format qui la coche tout seul quand un contenu de ce format est publié.
+export type CaseSemaine = { label: string; format?: FormatContenu };
 
 // ---------- missions stories ----------
 
@@ -115,4 +123,7 @@ export type AppState = {
   sorties: Sortie[];
   objectif: Objectif | null;
   position: Position | null;
+  taches: Tache[]; // dans l'ordre des priorités
+  casesCochees: Record<string, number[]>; // lundi de la semaine → cases cochées à la main
+  reseaux: Record<string, { date: string; valeur: number }[]>; // plateforme → relevés d'abonnés
 };

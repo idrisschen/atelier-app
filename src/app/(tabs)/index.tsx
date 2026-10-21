@@ -8,6 +8,7 @@ import { Glass } from '@/components/glass';
 import { Icon, type NomIcone } from '@/components/icon';
 import { ProchaineLumiere } from '@/components/lumiere';
 import { Rings } from '@/components/rings';
+import { CetteSemaine, MaListe } from '@/components/todo';
 import { Button, Card, Check, Divider, ErrorNote, Field, IconButton, Num, Screen, Section, Status, Txt, succes, tap } from '@/components/ui';
 import { Radius, Spacing, type ThemeColor } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -36,6 +37,10 @@ export default function Aujourdhui() {
       <Txt variant="label" style={{ marginTop: -Spacing.three, textTransform: 'capitalize' }}>{dateLongue()}</Txt>
 
       <Tableau />
+
+      <MaListe />
+
+      <CetteSemaine />
 
       <Semaine state={state} jour={jour} />
 

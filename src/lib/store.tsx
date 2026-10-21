@@ -17,6 +17,9 @@ const VIDE: AppState = {
   sorties: [],
   objectif: null,
   position: null,
+  taches: [],
+  casesCochees: {},
+  reseaux: {},
 };
 
 type V1 = {

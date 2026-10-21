@@ -6,6 +6,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Barre } from '@/components/barre';
 import { CarteBilan, Libelle } from '@/components/carte-bilan';
+import { MesReseaux } from '@/components/reseaux';
 import { Chip, IconButton, Num, Screen } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
 import { bilan, JOURS_PAR_SEMAINE, PERIODES, pluriel, type Periode } from '@/lib/bilan';
@@ -61,6 +62,8 @@ export default function Bilan() {
       </CarteBilan>
 
       <Objectif />
+
+      <MesReseaux />
 
       <CarteBilan de="#F1EEFF" vers="#C9C3F2" encre={ENCRE} nom="atelier-meilleur" lien={{ label: 'Tous les verdicts', onPress: () => router.push('/contenus') }}>
         <Text style={[styles.phrase, { color: ENCRE, paddingRight: 48 }]}>Ton meilleur contenu</Text>
