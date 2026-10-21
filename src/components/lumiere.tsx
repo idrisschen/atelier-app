@@ -51,7 +51,8 @@ export function ActiverPosition() {
 export function ProchaineLumiere() {
   const { state } = useStore();
   const t = useMaintenant();
-  if (!state.position) return <ActiverPosition />;
+  // Sans position, rien sur l'accueil : la demande se fait dans Sortir (FriseLumiere).
+  if (!state.position) return null;
   const l = prochaineLumiere(t, state.position.lat, state.position.lon);
   if (!l) return null;
   const couleur = l.type === 'golden' ? 'golden' : 'blue';
