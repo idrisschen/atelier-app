@@ -93,7 +93,7 @@ const A_EVITER = [
   'Commencer par un plan large vide ou par « Bon les gars, aujourd’hui… ».',
   'Plus de 30 % de selfie : filme les autres, l’action, les détails.',
   'Un temps calme juste après l’accroche : le 2e moment fort vient tout de suite.',
-  'Filmer quelqu’un de près sans lui avoir demandé.',
+  'Publier une personne reconnaissable sans son accord (droit à l’image) : demande-le et filme son « oui », sinon garde la foule, filme de dos ou floute.',
 ];
 
 export function briefLocal(format: FormatContenu, profile: Profile): Brief {

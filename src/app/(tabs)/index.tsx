@@ -1,18 +1,19 @@
 // Aujourd'hui : le tableau des départs. Une information par carte, le détail au toucher.
-import { router } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { BoardingPass } from '@/components/boarding-pass';
 import { Glass } from '@/components/glass';
 import { Icon, type NomIcone } from '@/components/icon';
 import { ProchaineLumiere } from '@/components/lumiere';
 import { Rings } from '@/components/rings';
-import { Button, Card, Check, ErrorNote, Field, IconButton, Num, Screen, Section, Status, Txt, succes, tap } from '@/components/ui';
+import { Button, Card, Check, Divider, ErrorNote, Field, IconButton, Num, Screen, Section, Status, Txt, succes, tap } from '@/components/ui';
 import { Radius, Spacing, type ThemeColor } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { askAtelier } from '@/lib/ai';
-import { ajouteJours, debutSemaine, ecartJours, today } from '@/lib/dates';
+import { ajouteJours, debutSemaine, today } from '@/lib/dates';
+import { departs } from '@/lib/etat';
 import { missionsLocales } from '@/lib/missions';
 import { avancement } from '@/lib/objectif';
 import { STICKERS } from '@/lib/options';
@@ -26,7 +27,6 @@ export default function Aujourdhui() {
   const { state } = useStore();
   const jour = today();
 
-  const aRendre = state.contenus.filter((c) => c.statut === 'publie' && c.publie && ecartJours(c.publie, jour) >= 2);
   const prochain = state.contenus
     .filter((c) => c.statut === 'brief' || c.statut === 'tournage' || c.statut === 'idee')
     .sort((a, b) => (a.tournage ?? '9999').localeCompare(b.tournage ?? '9999'))[0];
@@ -35,22 +35,9 @@ export default function Aujourdhui() {
     <Screen title={state.profile?.prenom ?? 'Aujourd’hui'} right={<IconButton icon="profil" label="Profil et réglages" onPress={() => router.push('/reglages')} />}>
       <Txt variant="label" style={{ marginTop: -Spacing.three, textTransform: 'capitalize' }}>{dateLongue()}</Txt>
 
-      <Semaine state={state} jour={jour} />
+      <Tableau />
 
-      {aRendre.map((c) => (
-        <Card key={c.id} onPress={() => router.push(`/contenu/${c.id}`)} label={`Verdict à rendre : ${c.titre}`} teinte="rgba(251,191,36,0.08)">
-          <View style={styles.row}>
-            <Status label="Verdict à rendre" icon="verdict" color="warning" />
-            <View style={{ flex: 1 }} />
-            <Icon name="suite" size="sm" color="textSecondary" />
-          </View>
-          <Txt variant="heading">{c.titre}</Txt>
-          <View style={styles.row}>
-            <Icon name="publie" size="sm" color="textSecondary" />
-            <Txt variant="small" color="textSecondary">il y a {ecartJours(c.publie!, jour)} jours</Txt>
-          </View>
-        </Card>
-      ))}
+      <Semaine state={state} jour={jour} />
 
       <ProchaineLumiere />
 
@@ -70,6 +57,47 @@ export default function Aujourdhui() {
         )}
       </Section>
     </Screen>
+  );
+}
+
+// ---------- le tableau des départs ----------
+
+function Tableau() {
+  const { state } = useStore();
+  const lignes = departs(state, today());
+  return (
+    <Section titre="Maintenant" icon="heure">
+      <Card>
+        {lignes.length === 0 ? (
+          <View style={{ gap: Spacing.two }}>
+            <Txt variant="heading">Rien de prévu aujourd’hui</Txt>
+            <Txt variant="small" color="textSecondary">Une sortie à l’heure dorée, même 20 minutes, suffit pour la semaine.</Txt>
+            <Button kind="secondary" icon="lieu" label="Planifier une sortie" onPress={() => router.push('/sortie/nouvelle')} />
+          </View>
+        ) : (
+          lignes.map((l, i) => (
+            <View key={l.cle}>
+              {i > 0 ? <Divider /> : null}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`${l.quand}, ${l.titre}, ${l.statut}`}
+                onPress={() => {
+                  tap();
+                  router.push(l.lien as Href);
+                }}
+                style={({ pressed }) => [styles.depart, pressed && { opacity: 0.6 }]}>
+                <Txt variant="label" style={styles.quand} numberOfLines={1}>{l.quand}</Txt>
+                <View style={{ flex: 1, gap: 6 }}>
+                  <Txt variant="heading" numberOfLines={1}>{l.titre}</Txt>
+                  <Status label={l.statut} icon={l.icon} color={l.couleur} />
+                </View>
+                <Icon name="suite" size="sm" color="textSecondary" />
+              </Pressable>
+            </View>
+          ))
+        )}
+      </Card>
+    </Section>
   );
 }
 
@@ -228,6 +256,8 @@ function MissionCard({ m, rang, faite, ouverte, onOpen, onToggle }: { m: Mission
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
+  depart: { flexDirection: 'row', alignItems: 'center', gap: Spacing.three, minHeight: 56, paddingVertical: Spacing.one },
+  quand: { width: 52, fontVariant: ['tabular-nums'] },
   rond: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   story: { padding: Spacing.three, gap: Spacing.three, alignItems: 'center', minHeight: 170, justifyContent: 'center' },
   ecran: { fontSize: 24, lineHeight: 26, fontWeight: '900', letterSpacing: -0.5, textAlign: 'center' },

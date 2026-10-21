@@ -1,8 +1,12 @@
 // Le bilan du créateur (le « Passport » de Flighty), calculé sur le téléphone à partir de ce qu'il a coché.
-import { ajouteJours, ecartJours } from './dates';
+import { ajouteJours, debutSemaine, ecartJours } from './dates';
 import type { AppState } from './types';
 
 export type Periode = '7' | '30' | 'tout';
+
+// Une semaine est tenue avec au moins 3 jours de stories : les autres jours sont des jours off, pas des ratés.
+// Un raté isolé ne casse pas une habitude, et un streak quotidien rigide nourrit le burnout (1 créateur sur 2).
+export const JOURS_PAR_SEMAINE = 3;
 
 export const PERIODES: { id: Periode; label: string }[] = [
   { id: '7', label: '7 jours' },
@@ -34,16 +38,18 @@ export function bilan(state: AppState, periode: Periode, jour: string) {
     sondages += m.faites.filter((i) => m.missions[i]?.sticker.type === 'sondage').length;
   }
 
-  // Série : jours d'affilée avec au moins une story, en partant d'aujourd'hui (ou d'hier si rien n'est encore posté).
-  let serie = 0;
-  for (let d = actif(jour) ? jour : ajouteJours(jour, -1); actif(d); d = ajouteJours(d, -1)) serie++;
-  let record = 0;
-  let courant = 0;
-  let precedent: string | null = null;
-  for (const d of Object.keys(state.missions).filter(actif).sort()) {
-    courant = precedent && ecartJours(precedent, d) === 1 ? courant + 1 : 1;
+  // Série en semaines tenues. La semaine en cours compte dès qu'elle est tenue, et ne casse rien tant qu'elle ne l'est pas.
+  const joursActifsSemaine = (lundi: string) => [0, 1, 2, 3, 4, 5, 6].filter((n) => actif(ajouteJours(lundi, n))).length;
+  const tenue = (lundi: string) => joursActifsSemaine(lundi) >= JOURS_PAR_SEMAINE;
+  const cetteSemaine = debutSemaine(jour);
+  const joursCetteSemaine = joursActifsSemaine(cetteSemaine);
+  let serie = tenue(cetteSemaine) ? 1 : 0;
+  for (let l = ajouteJours(cetteSemaine, -7); tenue(l); l = ajouteJours(l, -7)) serie++;
+  let record = serie;
+  const premiereSemaine = debutSemaine(premier);
+  for (let l = premiereSemaine, courant = 0; l <= cetteSemaine; l = ajouteJours(l, 7)) {
+    courant = tenue(l) ? courant + 1 : 0;
     record = Math.max(record, courant);
-    precedent = d;
   }
 
   const sorties = state.sorties.filter((s) => s.faite && dans(s.quand.slice(0, 10)));
@@ -59,6 +65,7 @@ export function bilan(state: AppState, periode: Periode, jour: string) {
     joursActifs,
     serie,
     record,
+    joursCetteSemaine,
     sorties: sorties.length,
     sortiesPourContenu: sorties.filter((s) => s.contenuId).length,
     publies: publies.length,

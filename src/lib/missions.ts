@@ -1,7 +1,9 @@
 // Missions stories du jour, sans IA : les règles de l'Atelier d'Erwin (BRIEF_STORIES.md) en code.
 // - chaque mission porte un sticker en un geste (sondage, curseur, quiz) ; une boîte à questions au plus par jour ;
 // - un sondage d'hier appelle sa suite aujourd'hui (le résultat, jamais un nouveau sondage dessus) ;
-// - 2 ou 3 missions, pas de remplissage, des formats qui tournent d'un jour à l'autre.
+// - pas de remplissage, des formats qui tournent d'un jour à l'autre ;
+// - le nombre suit la taille du compte : les petits comptes postent en médiane ~12 stories par mois à 1k–5k abonnés,
+//   ~35 à 10k–50k (Socialinsider 2025, comptes de marques). Plus de stories ne rattrape pas une portée qui ne suit pas.
 import { ajouteJours } from './dates';
 import type { AppState, Mission, MissionsDuJour } from './types';
 
@@ -124,6 +126,14 @@ const PARTAGE: Format = {
 
 const MOMENTS = ['Au réveil', 'Vers 13 h', 'Vers 18 h'];
 
+// Abonnés connus (dernier relevé de l'objectif) → missions par jour. Inconnu : 2.
+export function missionsParJour(state: AppState) {
+  const releves = state.objectif?.releves ?? [];
+  const abonnes = releves.length ? [...releves].sort((a, b) => a.date.localeCompare(b.date)).pop()!.valeur : null;
+  if (abonnes === null) return 2;
+  return abonnes < 5000 ? 1 : abonnes < 10000 ? 2 : 3;
+}
+
 // Petit hasard déterministe : même jour = mêmes missions.
 function graine(s: string) {
   let h = 2166136261;
@@ -149,6 +159,7 @@ export function missionsLocales(state: AppState, jour: string, journee: string):
   // Suite logique : un sondage posté hier attend son résultat.
   const sondageHier = hier?.missions.some((x, i) => hier.faites.includes(i) && FORMATS.find((f) => f.id === x.format)?.sondage);
 
+  const max = missionsParJour(state);
   const choisis: Format[] = [];
   if (sondageHier) choisis.push(RESULTAT);
   if (lundi) choisis.push(DEFI);
@@ -158,7 +169,7 @@ export function missionsLocales(state: AppState, jour: string, journee: string):
   const candidats = FORMATS.filter((f) => !formatsRecents.has(f.id)).sort(() => rnd() - 0.5);
   const reserve = FORMATS.filter((f) => formatsRecents.has(f.id)).sort(() => rnd() - 0.5);
   for (const f of [...candidats, ...reserve]) {
-    if (choisis.length >= 3) break;
+    if (choisis.length >= max) break;
     if (sondageHier && f.sondage) continue; // pas de sondage le jour d'un résultat
     if (f.sondage && choisis.some((c) => c.sondage)) continue; // un seul sondage : il aura sa suite demain
     if (f.id === 'questions' && choisis.some((c) => c.id === 'questions')) continue;
@@ -168,14 +179,14 @@ export function missionsLocales(state: AppState, jour: string, journee: string):
   // Ordre de la journée (règle d'Erwin) : le résultat ou le sondage au réveil, la boîte à questions en dernier.
   const rang = (f: Format) => (f.id === 'resultat' ? 0 : f.sondage ? 1 : f.id === 'questions' ? 3 : 2);
   const missions = choisis
-    .slice(0, 3)
+    .slice(0, max) // les suites passent en premier : un résultat de sondage n’est jamais coupé
     .sort((a, b) => rang(a) - rang(b))
     .map((f, i) => ({ ...f.fabrique(ctx), format: f.id, moment: MOMENTS[i] }));
   return {
     missions,
     conseil: journee
       ? `Ta journée : « ${journee} ». Prends 5 secondes de ce que tu vis pour la 2e mission, c’est la plus vue.`
-      : 'Poste la première au réveil : un sondage vu tôt touche les gens du matin, du midi et du soir.',
+      : 'Ta première story est ton accroche : c’est là qu’on part le plus (près d’1 sur 4). Mets-y la plus forte, au réveil.',
     faites: [],
     journee,
     source: 'local',

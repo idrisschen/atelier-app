@@ -8,7 +8,7 @@ import { Barre } from '@/components/barre';
 import { CarteBilan, Libelle } from '@/components/carte-bilan';
 import { Chip, IconButton, Num, Screen } from '@/components/ui';
 import { Spacing } from '@/constants/theme';
-import { bilan, PERIODES, pluriel, type Periode } from '@/lib/bilan';
+import { bilan, JOURS_PAR_SEMAINE, PERIODES, pluriel, type Periode } from '@/lib/bilan';
 import { today } from '@/lib/dates';
 import { avancement, nombre } from '@/lib/objectif';
 import { useStore } from '@/lib/store';
@@ -52,9 +52,11 @@ export default function Bilan() {
 
       <CarteBilan de="#B23A1E" vers="#5A1410" nom="atelier-serie" lien={{ label: 'Stories du jour', onPress: () => router.navigate('/') }}>
         <Num size={84} color="text">{b.serie}</Num>
-        <Text style={styles.phrase}>{b.serie > 1 ? 'jours d’affilée avec une story' : 'jour d’affilée avec une story'}</Text>
+        <Text style={styles.phrase}>{b.serie > 1 ? 'semaines d’affilée tenues' : 'semaine d’affilée tenue'}</Text>
         <Text style={[styles.detail, { color: '#FFB4A2' }]}>
-          {b.record > b.serie ? `Ton record : ${pluriel(b.record, 'jour')}. Encore ${b.record - b.serie + 1} pour le battre.` : b.serie ? 'C’est ton record. Ne casse pas la série demain.' : 'Une story aujourd’hui lance la série.'}
+          Cette semaine : {Math.min(b.joursCetteSemaine, 7)}/{JOURS_PAR_SEMAINE} jours avec une story.{' '}
+          {b.joursCetteSemaine >= JOURS_PAR_SEMAINE ? 'Semaine tenue : le reste, ce sont des jours off.' : 'Les autres jours sont des jours off, pas des ratés.'}
+          {b.record > b.serie ? ` Ton record : ${pluriel(b.record, 'semaine')}.` : ''}
         </Text>
       </CarteBilan>
 

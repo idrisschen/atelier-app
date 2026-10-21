@@ -52,6 +52,7 @@ export type Brief = {
 
 export type Stats = {
   vues: number;
+  portee?: number; // comptes touchés (« reach ») : la base des ratios qu'Instagram regarde
   likes: number;
   commentaires: number;
   partages: number;

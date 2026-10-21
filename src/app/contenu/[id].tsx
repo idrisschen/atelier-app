@@ -175,6 +175,7 @@ function BriefDetail({ brief, replie }: { brief: Brief; replie?: boolean }) {
 
 const CHAMPS: { cle: keyof Stats; label: string; icon: NomIcone; requis?: boolean }[] = [
   { cle: 'vues', label: 'Vues', icon: 'vues', requis: true },
+  { cle: 'portee', label: 'Comptes touchés', icon: 'abonnes' },
   { cle: 'likes', label: 'J’aime', icon: 'jaime' },
   { cle: 'commentaires', label: 'Commentaires', icon: 'commentaires' },
   { cle: 'partages', label: 'Partages', icon: 'partages' },
@@ -202,7 +203,7 @@ function SaisieStats({ c, modifie }: { c: Contenu; modifie: (p: Partial<Contenu>
       const brut = vals[f.cle].trim();
       if (!brut) {
         if (f.requis) return setError(`${f.label} : obligatoire.`);
-        if (f.cle !== 'zap') stats[f.cle] = 0;
+        if (f.cle !== 'zap' && f.cle !== 'portee') stats[f.cle] = 0; // facultatifs : absents plutôt que zéro
         continue;
       }
       const n = nombre(brut);
@@ -210,8 +211,11 @@ function SaisieStats({ c, modifie }: { c: Contenu; modifie: (p: Partial<Contenu>
       if (f.cle === 'zap' && n > 100) return setError('Le zap est un pourcentage, entre 0 et 100.');
       stats[f.cle] = n;
     }
-    // Comparaison au créateur lui-même : ses contenus précédents sur la même plateforme.
-    const precedents = state.contenus.filter((x) => x.id !== c.id && x.plateforme === c.plateforme && x.stats);
+    // Comparaison au créateur lui-même : ses contenus précédents du même format sur la même plateforme,
+    // ou toute la plateforme tant qu'il y a moins de 3 contenus de ce format.
+    const plateforme = state.contenus.filter((x) => x.id !== c.id && x.plateforme === c.plateforme && x.stats);
+    const memeFormat = plateforme.filter((x) => x.format === c.format);
+    const precedents = memeFormat.length >= 3 ? memeFormat : plateforme;
     succes();
     modifie({ stats, verdict: calculeVerdict(stats, precedents), statut: 'verdict' });
   };
