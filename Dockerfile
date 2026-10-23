@@ -1,5 +1,5 @@
 # Démo web de l'app : export Expo web + serveur Deno (pages + passerelle IA sur /api).
-FROM node:22-bookworm-slim AS web
+FROM node:22.23.4-bookworm-slim AS web
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
